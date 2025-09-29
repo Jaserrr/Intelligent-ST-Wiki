@@ -1,0 +1,257 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	switch.ASM
+	Object File:	switch.hex
+	List File:	switch.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG  0000H
+    2:	  0000	02 01 00	LJMP MAIN
+    3:		N      0003	ORG  0003H
+    4:	  0003	02 01 7E	LJMP INTA
+    5:		N      0100	ORG  0100H
+    6:
+    7:	  0100	75 81 60	MAIN: MOV SP, #60H
+    8:	  0103	D2 88		      SETB IT0
+    9:	  0105	D2 AF		      SETB EA
+   10:	  0107	D2 A8		      SETB EX0
+   11:	  0109	C2 A6		      CLR P2.6
+   12:	  010B	E4		      CLR A
+   13:	  010C	12 01 26	      CALL STATUS0
+   14:
+   15:	  010F	12 01 35	CIRCLE: LCALL STATUS1
+   16:	  0112	70 EC		        JNZ MAIN
+   17:	  0114	12 01 44	        LCALL STATUS2
+   18:	  0117	70 E7		        JNZ MAIN
+   19:	  0119	12 01 53	        LCALL STATUS3
+   20:	  011C	70 E2		        JNZ MAIN
+   21:	  011E	12 01 62	        LCALL STATUS4
+   22:	  0121	70 DD		        JNZ MAIN
+   23:	  0123	02 01 0F	        LJMP CIRCLE
+   24:
+   25:	  0126	D2 A6		STATUS0: SETB P2.6
+   26:	  0128	12 01 71	         LCALL CLRLIGHT
+   27:	  012B	D2 80		         SETB P0.0
+   28:	  012D	D2 83		         SETB P0.3
+   29:	  012F	C2 A6		         CLR P2.6
+   30:	  0131	12 01 99	         LCALL DELAY2S
+   31:	  0134	22		         RET
+   32:
+   33:	  0135	D2 A6		STATUS1: SETB P2.6
+   34:	  0137	12 01 71	         LCALL CLRLIGHT
+   35:	  013A	D2 80		         SETB P0.0
+   36:	  013C	D2 85		         SETB P0.5
+   37:	  013E	C2 A6		         CLR P2.6
+   38:	  0140	12 01 8C	         LCALL DELAY3S
+   39:	  0143	22		         RET
+   40:
+   41:	  0144	D2 A6		STATUS2: SETB P2.6
+   42:	  0146	12 01 71	         LCALL CLRLIGHT
+   43:	  0149	D2 80		         SETB P0.0
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  014B	D2 84		         SETB P0.4
+   45:	  014D	C2 A6		         CLR P2.6
+   46:	  014F	12 01 99	         LCALL DELAY2S
+   47:	  0152	22		         RET
+   48:
+   49:	  0153	D2 A6		STATUS3: SETB P2.6
+   50:	  0155	12 01 71	         LCALL CLRLIGHT
+   51:	  0158	D2 82		         SETB P0.2
+   52:	  015A	D2 83		         SETB P0.3
+   53:	  015C	C2 A6		         CLR P2.6
+   54:	  015E	12 01 8C	         LCALL DELAY3S
+   55:	  0161	22		         RET
+   56:
+   57:	  0162	D2 A6		STATUS4: SETB P2.6
+   58:	  0164	12 01 71	         LCALL CLRLIGHT
+   59:	  0167	D2 81		         SETB P0.1
+   60:	  0169	D2 83		         SETB P0.3
+   61:	  016B	C2 A6		         CLR P2.6
+   62:	  016D	12 01 99	         LCALL DELAY2S
+   63:	  0170	22		         RET
+   64:
+   65:	  0171	C2 80		CLRLIGHT: CLR P0.0
+   66:	  0173	C2 81		          CLR P0.1
+   67:	  0175	C2 82		          CLR P0.2
+   68:	  0177	C2 83		          CLR P0.3
+   69:	  0179	C2 84		          CLR P0.4
+   70:	  017B	C2 85		          CLR P0.5
+   71:	  017D	22		          RET
+   72:
+   73:	  017E	E4		INTA: CLR A
+   74:	  017F	D2 A6		      SETB P2.6
+   75:	  0181	12 01 71	      LCALL CLRLIGHT
+   76:	  0184	D2 80		      SETB P0.0
+   77:	  0186	D2 83		      SETB P0.3
+   78:	  0188	C2 A6		      CLR P2.6
+   79:	  018A	04		      INC A
+   80:	  018B	32		      RETI
+   81:
+   82:	  018C			DELAY3S:
+   83:	  018C	7F BD		    MOV R7,#0BDH
+   84:	  018E			DL1:
+   85:	  018E	7E E6		    MOV R6,#0E6H
+   86:	  0190			DL0:
+   87:	  0190	7D 21		    MOV R5,#21H
+   88:	  0192	DD FE		    DJNZ R5,$
+   89:	  0194	DE FA		    DJNZ R6,DL0
+   90:	  0196	DF F6		    DJNZ R7,DL1
+   91:	  0198	22		    RET
+   92:
+   93:	  0199			DELAY2S:
+   94:	  0199	7F 7F		    MOV R7,#7FH
+   95:	  019B			DL3:
+   96:	  019B	7E EB		    MOV R6,#0EBH
+   97:	  019D			DL2:
+   98:	  019D	7D 20		    MOV R5,#20H
+   99:	  019F	DD FE		    DJNZ R5,$
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  01A1	DE FA		    DJNZ R6,DL2
+  101:	  01A3	DF F6		    DJNZ R7,DL3
+  102:	  01A5	00		    NOP
+  103:	  01A6	22		    RET
+  104:
+  105:				END
+  106:
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CIRCLE				  CODE	    010F	  15
+CLRLIGHT			  CODE	    0171	  65
+CY				  BIT	      D7
+DELAY2S				  CODE	    0199	  93
+DELAY3S				  CODE	    018C	  82
+DL0				  CODE	    0190	  86
+DL1				  CODE	    018E	  84
+DL2				  CODE	    019D	  97
+DL3				  CODE	    019B	  95
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+INTA				  CODE	    017E	  73
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0100	   7
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+STATUS0				  CODE	    0126	  25
+STATUS1				  CODE	    0135	  33
+STATUS2				  CODE	    0144	  41
+STATUS3				  CODE	    0153	  49
+STATUS4				  CODE	    0162	  57
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6

@@ -1,0 +1,13 @@
+|suocun
+AO <= inst8.DB_MAX_OUTPUT_PORT_TYPE
+CLEAR => inst10.IN0
+A => inst8.IN1
+C => inst11.IN1
+D => inst12.IN1
+B => inst9.IN1
+CLK => inst5.IN1
+BO <= inst9.DB_MAX_OUTPUT_PORT_TYPE
+CO <= inst11.DB_MAX_OUTPUT_PORT_TYPE
+DO <= inst12.DB_MAX_OUTPUT_PORT_TYPE
+
+

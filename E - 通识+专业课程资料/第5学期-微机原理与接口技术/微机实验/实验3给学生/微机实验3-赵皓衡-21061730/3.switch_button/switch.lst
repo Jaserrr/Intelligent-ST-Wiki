@@ -1,0 +1,232 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	switch.ASM
+	Object File:	switch.hex
+	List File:	switch.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG    0000H
+    2:	  0000	02 01 00	LJMP   MAIN
+    3:		N      0003	ORG    0003H
+    4:	  0003	12 01 06	LCALL  LOOP
+    5:	  0006	32		           RETI
+    6:		N      0100	ORG    0100H
+    7:	  0100	D2 AF		MAIN:  SETB EA
+    8:	  0102	D2 A8		            SETB EX0
+    9:	  0104	D2 88		            SETB IT0
+   10:
+   11:	  0106			LOOP:
+   12:	  0106	30 80 19	      JNB  P0.0,K1
+   13:	  0109	30 81 1C	      JNB  P0.1,K2
+   14:	  010C	30 82 1F	      JNB  P0.2,K3
+   15:	  010F	30 83 22	      JNB  P0.3,K4
+   16:	  0112	30 84 25	      JNB  P0.4,K5
+   17:	  0115	30 85 28	      JNB  P0.5,K6
+   18:	  0118	30 86 2B	      JNB  P0.6,K7
+   19:	  011B	30 87 2E	      JNB  P0.7,K8
+   20:	  011E	02 01 52	      LJMP J0
+   21:	  0121	22		      RET
+   22:	  0122	C2 90		K1: CLR P1.0
+   23:	  0124	75 39 1E	      MOV 39H,#30
+   24:	  0127	22		      RET
+   25:	  0128	C2 91		K2: CLR P1.1
+   26:	  012A	75 40 3C	   MOV 40H,#60
+   27:	  012D	22		    RET
+   28:	  012E	C2 92		K3: CLR P1.2
+   29:	  0130	75 41 5A	    MOV 41H,#90
+   30:	  0133	22		    RET
+   31:	  0134	C2 93		K4: CLR P1.3
+   32:	  0136	75 42 78	    MOV 42H,#120
+   33:	  0139	22		    RET
+   34:	  013A	C2 94		K5: CLR P1.4
+   35:	  013C	75 43 78	    MOV 43H,#120
+   36:	  013F	22		    RET
+   37:	  0140	C2 95		K6: CLR P1.5
+   38:	  0142	75 44 5A	    MOV 44H,#90
+   39:	  0145	22		    RET
+   40:	  0146	C2 96		K7: CLR P1.6
+   41:	  0148	75 45 3C	    MOV 45H,#60
+   42:	  014B	22		    RET
+   43:	  014C	C2 97		K8: CLR P1.7
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  014E	75 46 1E	    MOV 46H,#30
+   45:	  0151	22		    RET
+   46:
+   47:	  0152	12 01 7D	J0:LCALL DL100ms
+   48:	  0155	D5 39 02	J1:DJNZ 39H,J2
+   49:	  0158	D2 90		     SETB P1.0
+   50:	  015A	D5 40 02	J2:DJNZ 40H,J3
+   51:	  015D	D2 91		     SETB P1.1
+   52:	  015F	D5 41 02	J3:DJNZ 41H,J4
+   53:	  0162	D2 92		     SETB P1.2
+   54:	  0164	D5 42 02	J4:DJNZ 42H,J5
+   55:	  0167	D2 93		     SETB P1.3
+   56:	  0169	D5 43 02	J5:DJNZ 43H,J6
+   57:	  016C	D2 94		     SETB P1.4
+   58:	  016E	D5 44 02	J6:DJNZ 44H,J7
+   59:	  0171	D2 95		    SETB P1.5
+   60:	  0173	D5 45 02	J7:DJNZ 45H,J8
+   61:	  0176	D2 96		    SETB P1.6
+   62:	  0178	D5 46 D7	J8:DJNZ 46H,J0
+   63:	  017B	D2 97		    SETB P1.7
+   64:
+   65:	  017D	C0 30		DL100ms: PUSH 30H
+   66:	  017F	75 30 64	MOV 30H, #100
+   67:	  0182	12 01 8B	D100: LCALL DL1MS
+   68:	  0185	D5 30 FA	DJNZ 30H, D100
+   69:	  0188	D0 30		POP 30H
+   70:	  018A	22		RET
+   71:
+   72:	  018B	C0 30		DL1MS:  PUSH 30H
+   73:	  018D	75 30 F8	MOV 30H, #248
+   74:	  0190	00		D1: NOP
+   75:	  0191	00		NOP
+   76:	  0192	D5 30 FB	DJNZ 30H, D1
+   77:	  0195	D0 30		POP 30H
+   78:	  0197	22		RET
+   79:
+   80:				END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+D1				  CODE	    0190	  74
+D100				  CODE	    0182	  67
+DL100MS				  CODE	    017D	  65
+DL1MS				  CODE	    018B	  72
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+J0				  CODE	    0152	  47
+J1				  CODE	    0155	  48
+J2				  CODE	    015A	  50
+J3				  CODE	    015F	  52
+J4				  CODE	    0164	  54
+J5				  CODE	    0169	  56
+J6				  CODE	    016E	  58
+J7				  CODE	    0173	  60
+J8				  CODE	    0178	  62
+K1				  CODE	    0122	  22
+K2				  CODE	    0128	  25
+K3				  CODE	    012E	  28
+K4				  CODE	    0134	  31
+K5				  CODE	    013A	  34
+K6				  CODE	    0140	  37
+K7				  CODE	    0146	  40
+K8				  CODE	    014C	  43
+LOOP				  CODE	    0106	  11
+MAIN				  CODE	    0100	   7
+OV				  BIT	      D2
+P				  BIT	      D0
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6

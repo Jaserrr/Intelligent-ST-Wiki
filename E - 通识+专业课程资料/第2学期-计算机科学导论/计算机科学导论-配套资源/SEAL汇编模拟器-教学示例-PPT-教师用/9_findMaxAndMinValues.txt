@@ -1,0 +1,213 @@
+#<Python代码：一趟遍历后获取序列的最大值与最小值>
+#def findMaxAndMinValues(arr):
+#     arrLength = len(arr)
+#     if arrLength % 2 == 0:
+#         if arr[0] >= arr[1]:
+#             max = arr[0]
+#             min = arr[1]
+#         else:
+#             max = arr[1]
+#             min = arr[0]
+#         for i in range(2,arrLength,2):
+#             if arr[i] > arr[i+1]:
+#                 if arr[i] > max:
+#                     max = arr[i]
+#                 if arr[i+1] < min:
+#                     min = arr[i+1]
+#             else:
+#                 if arr[i+1]>max:
+#                     max = arr[i+1]
+#                 if arr[i] < min:
+#                     min = arr[i]
+#         return max,min
+#     else:
+#         max = arr[0]
+#         min = arr[0]
+#         for i in range(1,arrLength,2):
+#             if arr[i] > arr[i+1]:
+#                 if arr[i] > max:
+#                     max = arr[i]
+#                 if arr[i+1] < min:
+#                     min = arr[i+1]
+#             else:
+#                 if arr[i+1]>max:
+#                     max = arr[i+1]
+#                 if arr[i] < min:
+#                     min = arr[i]
+#         return max,min
+# arr = [8, 10, 7, 16, 10, 3, 9, 7, 20, 2]
+# #arr = [9, 8, 7, 6, 5, 9, 3, 2, 1]
+# max , min = findMaxAndMinValues(arr)
+# print ("max:",max)
+# print ("min:",min)
+
+#使用_data将序列存储，将最大值放在R0上，最小值放在R1上
+#<汇编代码：一趟遍历后获取序列的最大值与最小值>
+move R15,10000
+move sp,R15
+
+_data 0,[13,19,9,5,12,8,7,4,11,6,6,21]
+move R2, 0    #序列的首地址
+move R3, 12
+
+
+push R3
+push R2
+
+call Lfind
+goto Lprint
+
+Lfind:
+push R15
+move R15,sp
+push R2
+push R3
+push R4
+push R5
+push R6   # 表示内存地址的偏移量
+push R7
+push R8
+push R9
+
+load R2, 02(R15)  #在函数内部获取序列的首地址
+load R3, 03(R15)  #在函数内部获取序列的长度
+
+div R4, R3, 2   #R4 = R3//2
+mul R4, R4, 2   #R4 = R4*2
+sub R4, R3, R4  #R4 = R3 - R4    #arrLength % 2的值存放在R4中
+
+beqz R4, Leven   #if R4==0 goto Leven  即跳转到偶数段代码上继续执行
+
+#否则执行奇数段代码
+load R4, 00(R2)  #max = arr[0]
+load R5, 00(R2)  #min = arr[0]
+sub R3, R3, 1    #长度减1用于循环
+
+Lfor:
+slt R9, R2, R3
+move R0, R4
+move R1, R5
+beqz R9, Lreturn
+move R6, 1   #将内存地址的偏移量设置为1
+add R2,R2,R6
+load R7, 00(R2)    #取出arr[i]
+add R2,R2, R6
+load R8, 00(R2)    #取出arr[i+1]
+slt R9, R7, R8     #判断R7 < R8是否成立，如果成立，则R9为1
+beqz R9, L1    #if R9==0 goto L1  此时R7 > R8
+slt R9, R8, R4
+beqz R9, Lmax2
+slt R9, R7, R5
+beqz R9, Lmin
+move R5, R7
+goto Lfor
+
+L1:
+slt R9, R7, R4
+beqz R9, Lmax1
+slt R9, R8, R5
+beqz R9, Lmin
+move R5, R8
+goto Lfor
+
+Lmax1:
+move R4, R7
+slt R9, R8, R5
+beqz R9, Lmin
+move R5, R8
+goto Lfor
+
+Lmin:
+goto Lfor
+
+Lmax2:
+move R4, R8
+slt R9, R7, R5
+beqz R9, Lmin
+move R5, R7
+goto Lfor
+
+Leven:
+load R4, 00(R2)
+add R2, R2,1
+load R5, 00(R2)
+sle  R9, R4, R5
+beqz R9, L2
+move R9, R5
+move R5, R4   #R5存放min值
+move R4, R9   #R4存放max值
+sub R3, R3, 1    #长度减1用于循环
+goto Lfor1
+
+L2:   #之前的赋值已经成功的得到R4和R5，也就是最大值与最小值初值赋值完成
+sub R3, R3,1    
+slt R9, R7, R5
+beqz R9, Lmin11
+move R5, R7
+goto Lfor1
+
+Lfor1: 
+slt R9, R2, R3
+move R0, R4
+move R1, R5
+beqz R9, Lreturn
+move R6, 1   #将内存地址的偏移量设置为1
+add R2,R2,R6
+load R7, 00(R2)    #取出arr[i]
+add R2,R2, R6
+load R8, 00(R2)    #取出arr[i+1]
+
+slt R9, R7, R8     #判断R7 < R8是否成立，如果成立，则R9为1
+beqz R9, L11    #if R9==0 goto L11  此时R7 > R8
+
+slt R9, R8, R4
+beqz R9, Lmax22    # if R8 > R4 goto Lmax22
+slt R9, R7, R5
+beqz R9, Lmin11
+move R5, R7
+goto Lfor1
+
+
+L11:
+slt R9, R7, R4
+beqz R9, Lmax11
+slt R9, R8, R5
+beqz R9, Lmin11
+move R5, R8
+goto Lfor1
+
+Lmax11:
+move R4, R7
+slt R9, R8, R5
+beqz R9, Lmin11
+move R5, R8
+goto Lfor1
+
+Lmin11:
+goto Lfor1
+
+Lmax22:
+move R4, R8
+slt R9, R7, R5
+beqz R9, Lmin11
+move R5, R7
+goto Lfor1
+
+Lreturn:
+pop R9
+pop R8
+pop R7
+pop R6
+pop R5
+pop R4
+pop R3
+pop R2
+move sp,R15
+pop R15
+ret
+
+Lprint:
+_pr "max:",R0
+_pr "min:",R1
+
+

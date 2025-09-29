@@ -1,0 +1,85 @@
+#<python代码：函数调用求乘法>
+#def multi(x,y):
+#    z = 0
+#    while y > 0:
+#        if(y & 1 == 0):
+#            y = y >> 1
+#            x = x << 1
+#        else:
+#            z = z + x
+#            y = y >> 1
+#            x = x << 1
+#    return z
+#if __name__=="__main__":
+#    a = 5
+#    b = 3
+#    c = multi(a,b)  #调用乘法函数计算a与b的乘积
+#    print(c)
+
+#主函数有三个局部变量a = 5，b = 3，c
+#调用函数multi(a,b)1次
+#计算得出a，b的乘积，结果放在R1上
+
+#<汇编代码：函数调用求正数乘法>
+mov R15,10000  #R15表示fp，fp = 10000
+mov sp,R15    #sp = fp
+sub sp,sp,2  #sp从10000往下开辟3个空间给局部变量a，b，sp = sp-2
+
+#mov R2,89     #a = 89
+#mov R3,52     #b = 52
+
+#mov R2,73     #a = 73
+#mov R3,69     #b = 69
+mov R2, 5
+mov R3, 3
+
+store -1(R15),R3
+store -2(R15),R2
+
+
+push R3   #传参数b
+push R2   #传参数a
+
+call Lmulti  #调用函数multi(a,b)，返回值存在R1中
+goto L4
+
+#multi函数有两个参数a，b，将乘积放到R1中返回
+Lmulti:          #multi(a,b)
+push R15      #将旧的fp值压入栈内
+mov R15,sp   #新的fp = sp
+sub sp,sp,1   #为multi函数中的局部变量c开辟空间
+push R2       #在函数中被更改，所以先存入栈内，在return之前会pop出来这个值
+push R3       #在函数中被更改，所以先存入栈内，在return之前会pop出来这个值
+push R4       #在函数中被更改，所以先存入栈内，在return之前会pop出来这个值
+push R5       #在函数中被更改，所以先存入栈内，在return之前会pop出来这个值
+push R6       #在函数中被更改，所以先存入栈内，在return之前会pop出来这个值
+load R2,2(R15)  #R2 = a
+load R3,3(R15)  #R3 = b
+
+L2:
+and R4,R3,1
+beqz R4,L3
+add R5,R5,R2
+
+L3:
+shiftr R3,R3,1
+shiftl R2,R2,1
+sle R6,R3,0
+beqz R6,L2
+
+L100:
+mov R1,R5    #R1=R5,结果存在R1中
+
+pop R6    #返回初始的R6
+pop R5    #返回初始的R5
+pop R4    #返回初始的R4
+pop R3    #返回初始的R3
+pop R2    #返回初始的R2
+mov sp,R15    #sp = fp
+pop R15    #重置fp，成为旧的fp
+ret   #pop pc
+
+L4:
+_pr R1
+
+

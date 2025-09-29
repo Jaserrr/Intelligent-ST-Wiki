@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Thu Dec 19 17:40:19 2024
+Quartus Prime Version : 17.1.0 Build 590 10/25/2017 SJ Lite Edition
+Revision Name : quickans
+Top-level Entity Name : suocun
+Family : Cyclone IV E
+Total logic elements : 6
+    Total combinational functions : 6
+    Dedicated logic registers : 4
+Total registers : 4
+Total pins : 10
+Total virtual pins : 0
+Total memory bits : 0
+Embedded Multiplier 9-bit elements : 0
+Total PLLs : 0

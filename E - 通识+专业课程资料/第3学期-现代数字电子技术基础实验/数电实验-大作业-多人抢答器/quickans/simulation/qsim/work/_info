@@ -1,0 +1,115 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dD:/experiments/lijinxuan_quickans/simulation/qsim
+vhard_block
+Z1 !s110 1734950238
+!i10b 1
+!s100 FWf]jC]V^[E]QfB1RG00n0
+IIB=VM^@k`;J:oL>jmKm3M3
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+R0
+Z3 w1734950231
+Z4 8quickans.vo
+Z5 Fquickans.vo
+L0 418
+Z6 OV;L;10.5b;63
+r1
+!s85 0
+31
+Z7 !s108 1734950238.000000
+Z8 !s107 quickans.vo|
+Z9 !s90 -work|work|quickans.vo|
+!i113 1
+Z10 o-work work
+Z11 tCvgOpt 0
+vsuocun
+R1
+!i10b 1
+!s100 G3C0GEkLfna=IkMS2LkY`0
+IN@In4G3o0DAJz1?LIM4K]0
+R2
+R0
+R3
+R4
+R5
+Z12 L0 31
+R6
+r1
+!s85 0
+31
+R7
+R8
+R9
+!i113 1
+R10
+R11
+vsuocun_vlg_vec_tst
+!s110 1734950239
+!i10b 1
+!s100 14UhIVAgkzY0BZHi?V9;V2
+I0CTKcoI?425T`ZoL?CS<j0
+R2
+R0
+w1734950230
+Z13 8Waveform.vwf.vt
+Z14 FWaveform.vwf.vt
+Z15 L0 29
+R6
+r1
+!s85 0
+31
+!s108 1734950239.000000
+!s107 Waveform.vwf.vt|
+Z16 !s90 -work|work|Waveform.vwf.vt|
+!i113 1
+R10
+R11
+vsuocun_withclk
+Z17 !s110 1734601200
+!i10b 1
+!s100 MXY`Qg6@@:YP]W4Wz`Qh=1
+I^gSdKbB:gc0la0:]?UB>21
+R2
+R0
+w1734601195
+R4
+R5
+R12
+R6
+r1
+!s85 0
+31
+Z18 !s108 1734601200.000000
+R8
+R9
+!i113 1
+R10
+R11
+vsuocun_withclk_vlg_vec_tst
+R17
+!i10b 1
+!s100 EVHnOUMj9D8;jP@B6gGA71
+IMFaA[[d>HgzGWAA6dK<[<3
+R2
+R0
+w1734601194
+R13
+R14
+R15
+R6
+r1
+!s85 0
+31
+R18
+!s107 Waveform.vwf.vt|
+R16
+!i113 1
+R10
+R11

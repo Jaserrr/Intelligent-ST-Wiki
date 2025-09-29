@@ -1,0 +1,84 @@
+#<python代码：求最大公约数，会将中间结果输出>
+#def GCD(x,y):
+#    if x < y:
+#        x,y = y,x
+#    if x%y == 0:
+#        return (y)
+#    gcd = GCD(x%y,y))
+#    return gcd
+#a = 48   # 可自己修改
+#b = 20   # 可自己修改
+#print (GCD(a,b))
+
+#主函数有两个局部变量，分别是a = 48, b = 20，分别放在R2和R3上
+#求这两个数的最大公约数，并将结果保存到寄存器R1中
+#用到函数调用，使用R15表示fp，这里设置fp初始为10000
+
+#<汇编代码：Eclid's算法求两个数的最大公约数>
+move R15, 10000   #用寄存器R15表示fp，将基地址设为10000
+move sp, R15      #设置当前栈顶位置
+sub sp,sp,2       #主函数中有两个局部变量，a和b，所以开辟为局部变量两个空间
+
+move R2, 48   # a的初始值为48
+move R3, 20   # b的初始值为20
+
+push R3   # 传参数b=48
+push R2   # 传参数a=20
+
+call Lgcd  
+goto Lprint
+
+Lgcd:     #gcd(x,y)，调用时会执行push pc
+push R15     #push旧的fp值进入栈空间，函数执行完后再pop出来
+move R15,sp    # 新的fp等于sp
+
+push R0      #将R0 push进栈内，保证函数的安全性和干净性，最后再将其pop出来
+push R2      #将R2 push进栈内，保证函数的安全性和干净性，最后再将其pop出来
+push R3      #将R3 push进栈内，保证函数的安全性和干净性，最后再将其pop出来
+push R4      #将R4 push进栈内，保证函数的安全性和干净性，最后再将其pop出来
+
+load R2,02(R15)
+load R3,03(R15)
+
+slt R0,R2,R3     #比较R2与R3的大小，使得R2存大值，R3存小值，R0保存R2与R3比较大小后的结果
+beqz R0,Lmod     # 如果R0为0，说明R2 >= R3，此时跳转到Lmod函数，求它们的模
+load R2, 03(R15)   # 如果R4为1，此时顺序执行，交换R2与R3的值，使得R2始终保存大值
+load R3, 02(R15)   # 交换R2与R3的值，使得R3始终存储小值
+
+Lmod:
+div R0,R2,R3     # R0 = R2//R3
+mul R0,R0,R3     # R0 = R5*R3
+sub R4,R2,R0     # R2与R3求模之后的结果保存在R2中
+
+
+beqz R4,L1   #如果R4的值为0，说明已经得到最大公约数，对应Python代码中if x%y == 0: return y,此时跳转到L1将最终的结果保存到R1中
+push R3    #如果R4为1，再次调用Lgcd函数，首先应该传递参数
+push R4    #如果R4为1，再次调用Lgcd函数，首先应该传递参数
+call Lgcd    #再次调用Lgcd函数
+goto Lpop #调用结束后执行return操作
+
+L1:   #保存最大公约数
+move R1,R3   #将R3的值赋值给R1
+goto Lreturn
+
+Lpop:
+pop R4
+pop R3
+
+Lreturn:   # Lgcd函数返回语句应该做的操作
+pop R4
+pop R3
+pop R2
+pop R0
+move sp,R15   #sp = fp
+pop R15       #重设fp的值，成为旧的fp
+ret           #pop pc
+
+
+Lprint:  #打印输出结果，输出结果保存在R1中
+_pr R1
+
+
+
+
+

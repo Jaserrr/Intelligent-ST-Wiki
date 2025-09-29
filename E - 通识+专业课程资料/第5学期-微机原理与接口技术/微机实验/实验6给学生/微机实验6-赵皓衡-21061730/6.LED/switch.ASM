@@ -1,0 +1,34 @@
+ORG  0000H
+SJMP MAIN
+ORG  0040H
+MAIN: MOV R0, #0
+      MOV R1, #01H
+      MOV R2, #6
+NEXT: MOV DPTR, #USE
+      MOV A, R0
+      MOVC A, @A+DPTR
+      MOV P0, A
+      MOV A, R1
+      MOV P2, A
+      LCALL DELAY1MS
+      MOV P0, #00H
+      INC R0
+      MOV A, R1
+      RLC A
+      MOV R1, A
+      DJNZ R2, NEXT
+      SJMP MAIN
+      RET
+
+TABLE: DB 3FH, 06H, 5BH, 4FH, 66H, 6DH, 7DH, 07H, 7FH, 6FH
+USE: DB 3FH, 7DH, 06H, 07H, 4FH, 3FH
+
+DELAY1MS:  PUSH 30H
+MOV 30H, #248
+D1: NOP
+NOP
+DJNZ 30H, D1
+POP 30H
+RET
+
+END

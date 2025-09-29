@@ -1,0 +1,101 @@
+#<python代码：判断输入的日期是该年的第几天>
+#year = 2018
+#month = 5
+#day = 5
+#months = [31,0,31,30,31,30,31,31,30,31,30,31]
+#sum = 0
+#if (year % 400 ==0) or (year % 100 !=0 and year % 4 == 0):
+#    months[1] = 29
+#else:
+#    months[1] = 28
+
+#for i in range(0,month-1,1):
+#    sum += months[i]
+
+#sum += day
+#print("days:",sum)   #125
+
+
+
+#将要判断的年月日分别放在寄存器R1，R2，R3上
+#将计算的第几天放在R4上
+#使用_data存储每个月的天数，由于2月特殊，暂存为0，在程序中进行年份判断是28天还是29天
+#判断2月的天数之后存储在对应的2月的位置处
+#由于每年是从一月开始的。所以_data的首地址使用1，以便与月份对应
+
+#<汇编代码：判断输入的日期是该年的第几天>
+move R1,2018
+move R2,5
+move R3,5
+
+_data 1,[31,0,31,30,31,30,31,31,30,31,30,31]
+move R0,1   #序列的首地址
+
+#year % 400 
+div R4,R1,400
+mul R4,R4,400
+sub R4,R1,R4    #R4表示year % 400的值
+
+beqz R4,L1
+move R4,0      #R4表示year % 400 ==0不成立的真值
+goto Lyear%100
+
+L1:
+move R4,1      #R5表示year % 400 ==0成立的真值
+
+#year % 100
+Lyear%100:
+div R5,R1,100
+mul R5,R5,100
+sub R5,R1,R5
+
+beqz R5,L0
+move R5,1     #R5表示year % 100 !=0成立的真值
+goto Lyear%4
+
+L0:
+move R5,0    #R5表示year % 100 !=0不成立的真值
+
+#year%4
+Lyear%4:
+div R6,R1,100
+mul R6,R6,100
+sub R6,R1,R6
+
+beqz R6,L2
+move R6,0       #R6表示year % 4 ==0不成立的真值
+goto Lconditions
+L2:
+move R6,1     #R6表示year % 4 ==0成立的真值
+
+
+Lconditions:
+and R6,R5,R6
+or R6,R4,R6
+beqz R6,L28     #如果R6为0，说明指定的年份不是闰年，跳转到L28执行
+
+L29:
+move R6,29
+store 01(R0),R6   #设置months[1]的值
+goto Lsum
+
+L28:
+move R6,28
+store 01(R0),R6   #设置months[1]的值
+
+Lsum:
+sub R2,R2,1
+sle R1,R2,0
+beqz R1,Lday
+add R4,R4,R3
+goto Lprint
+
+Lday:
+load R1,00(R2)
+add R4,R4,R1
+goto Lsum
+
+Lprint:
+_pr "days:",R4
+
+

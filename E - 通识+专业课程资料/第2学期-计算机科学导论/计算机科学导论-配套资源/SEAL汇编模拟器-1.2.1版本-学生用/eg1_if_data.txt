@@ -1,0 +1,17 @@
+#使用_data 输入数字，首地址为0
+#输出在寄存器R1中
+#<汇编代码：两个数字比较大小>
+_data 0,[5,7]
+
+mov R0,0
+load R2,0(R0)
+load R3,1(R0)
+
+sle R4,R2,R3
+beqz R4,L1
+mov R1,R2
+goto L2
+L1:
+mov R1,R3
+L2:
+_pr R1

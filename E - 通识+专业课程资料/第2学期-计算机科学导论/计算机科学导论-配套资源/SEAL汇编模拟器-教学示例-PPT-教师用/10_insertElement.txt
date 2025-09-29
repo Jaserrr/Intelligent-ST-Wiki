@@ -1,0 +1,145 @@
+#<Python代码：给定一个排好序的数字序列，插入一个数字在原数列的正确位置上，并且原数列的长度加1>
+#def insertElement(L,element,arrLength):
+#    #顺序查找，时间复杂度为O(n)
+#    if element <= L[0]:
+#        position = 0     #说明新插入的元素应该放在数组的0位置
+#        L.insert(position, element)  #在0位置插入元素，使用Python中list自带的insert函数来实现
+#        return arrLength+1
+#    if element >= L[len(L)-1]:
+#        position = len(L)      #将len(arr)存入R1寄存器中，说明新插入的元素应该放在数组的len(arr)位置
+#        L.insert(position, element)
+#        return arrLength+1
+#    for i in range(0,arrLength-2,1):
+#        if L[i] <= element and L[i+1] >= element:  #找到了element的位置
+#            position = i+1     #说明新插入的元素应该放在i+1的位置
+#            L.insert(position, element)
+#            return arrLength+1
+#        else:
+#            continue
+#L = [1, 2, 3, 4, 5, 6, 7, 8]
+#arrLength = len(L)
+#arrLength = insertElement(L,1,arrLength)
+#for i in range(0, arrLength, 1):
+#    print(L[i], end=" ")
+#print("arrLength",arrLength)
+
+#使用_data存储序列，将新的序列放在原序列相同首地址的内存处，将新序列长度放在R1上
+#<汇编代码：给定一个排好序的数字序列，插入一个数字在原数列的正确位置上，并且原数列的长度加1>
+move R15,10000
+move sp,R15
+
+_data 0,[1, 2, 3, 4, 5, 6, 7, 8, 9]
+move R2, 0    #序列的首地址
+move R3, 9    #序列的长度
+move R4, 8    #要插入的元素
+
+push R4   #要插入的元素
+push R3   #序列的长度
+push R2   #序列的首地址
+
+call Linsert
+goto Lprint
+
+Linsert:
+push R15
+move R15,sp
+push R2
+push R3
+push R4
+push R5
+push R6
+push R7
+push R8
+push R9
+load R2, 02(R15)
+load R3, 03(R15)
+load R4, 04(R15)
+
+load R5,00(R2)    #将首元素取出放在R5内
+sle R6,R4,R5       #比较element与arr[0]的值
+beqz R6, LinsertEnd      #if R6 == 1 , R4 <= R5
+move R6, R3
+
+L1:
+#将R4插入到第一个位置，其它的元素全部向后移动
+sub R6, R6,1  #将数列长度减1
+slt R9, R6, 0
+beqz R9, L2
+store 00(R2), R4
+add R1,R3,1
+goto Lreturn 
+
+L2:
+load R7, 00(R6)
+add R8, R6,1   #将长度加1
+store 00(R8),R7
+goto L1
+
+LinsertEnd:
+sub R9, R3,1
+#得到最后一个元素
+load R5, 00(R9)   
+sle R6, R5, R4
+beqz R6, Lfor
+add R9,R9,1 
+store 00(R9),R4 
+add R1,R3,1
+goto Lreturn
+
+Lfor:
+#找到位置
+load R5, 00(R2)
+sle R6, R5, R4
+add R2, R2,1
+load R5, 00(R2)
+sle R7, R4, R5
+and R7, R6, R7   #如果同时成立
+beqz R7, Lcontinue
+#此时说明position就是当前的R2值
+#_pr "position:", R2
+move R6, R3   #表示序列的长度
+
+Lsub:
+sub R6, R6,1  #将数列长度减1
+sle R9, R2, R6
+beqz R9, Llength
+load R7, 00(R6)   #获取到最后一个元素，将其放入到R7中
+add R8, R6,1   #将R6加1，指向下一个位置
+store 00(R8),R7
+goto Lsub
+
+Llength:
+#返回新序列的长度
+store 00(R2), R4
+add R1,R3,1
+goto Lreturn
+
+Lcontinue:
+goto Lfor
+
+
+Lreturn:
+pop R9
+pop R8
+pop R7
+pop R6
+pop R5
+pop R4
+pop R3
+pop R2
+move sp,R15
+pop R15
+ret
+
+Lprint:
+move R4, R2   #将基地址R2赋值给R4
+L3:
+load R5, 00(R4)
+_pr R5
+add R4, R4, 1
+slt R5, R4, R1
+beqz R5,L4
+goto L3
+
+L4:
+_pr "arrLength:",R1

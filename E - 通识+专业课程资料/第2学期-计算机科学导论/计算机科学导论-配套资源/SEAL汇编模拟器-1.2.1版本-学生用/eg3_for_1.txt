@@ -1,0 +1,19 @@
+#<python代码：for循环求1+2+…+10>    
+#s = 0
+#for i in range(1,11):
+#    s = s + i
+#print(s)
+
+#使用R0存储每次要进行求和的数字
+#最终的结果放在R1上
+#<汇编代码：for循环求1+2+…+10>
+mov R0,1   #第一个数
+mov R1,0   #存结果
+L0:
+sle R2,R0,10   #循环终止条件
+beqz R2,L1     #if R2>=10，跳转到L1
+add R1,R1,R0
+add R0,R0,1
+goto L0   #跳到L0循环执行
+L1:
+_pr R1

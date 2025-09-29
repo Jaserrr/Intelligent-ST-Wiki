@@ -1,0 +1,25 @@
+#<python代码：while求a+d大于等于100时，a与i的值>
+#a = 1
+#d = 1
+#i = 0   #计数
+#while a<100:
+#    a = a+d
+#    d = d+1
+#    i = i+1
+#print(i,a)
+
+
+#<汇编代码：while求a+d大于等于100时，a与i的值>
+mov R1,1   #a
+mov R2,1   #d
+mov R3,0   #i
+
+L1:
+slt R4,R1,100
+beqz R4,L2
+add R1,R1,R2
+add R2,R2,1
+add R3,R3,1
+goto L1
+L2:
+_pr R3,R1

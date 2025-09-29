@@ -1,0 +1,72 @@
+#<python代码：三个数求最小值>
+#def get_min(x,y):
+#    if x<=y:
+#        return x
+#    else:
+#        return y
+#if __name__=="__main__":
+#    a = 7
+#    b = 18
+#    c = 5
+#    print(get_min(c,get_min(a,b)))
+
+#主函数有三个变量a = 7，b = 18,c = 5
+# 调用函数min(a,b)2次
+# 找出a，b，c中的最小值
+#将结果放在R1上
+
+#<汇编代码：三个数求最小值>
+mov R15,10000     #R15表示fp，将基地址设置为10000
+mov sp,R15    # sp = fp
+sub sp,sp,3   # sp从10000往下开辟3个空间给局部变量a,b,c sp = sp-3
+
+mov R2,7   # a = 7 
+mov R3,18  # b = 18
+mov R4,9  # c = 9
+
+store -1(R15),R4
+store -2(R15),R3
+store -3(R15),R2
+
+push R3  #传参数b
+push R2  #传参数a
+
+call Lmin #调用函数min(a,b),返回值存在R1中
+
+push R4   #传参数c
+push R1   #传a和b中的最小值
+
+call Lmin   #再次调用min(R1,c),返回值为保存在R1中
+goto L3   #
+
+
+# min函数有两个参数a，b，将最小值放到R1中返回
+Lmin:  # min(a,b)
+push R15    #将旧的fp值存入栈内
+mov R15,sp # 新的fp等于sp
+#sub sp,sp,0   # 因为此函数没有局部变量，所以可以去掉
+push R2   #在函数中被更改，所以先存入栈内，在return之前会pop出来
+push R3   #在函数中被更改，所以先存入栈内，在return之前会pop出来
+push R4   #在函数中被更改，所以先存入栈内，在return之前会pop出来
+load R2, 2(R15)   # R2 = a
+load R3, 3(R15)  # R3 = b
+sle R4, R2, R3   # R4 =(R2<=R3)
+beqz R4, L100 # if (R4 == 0) goto L100
+mov R1,R2   # R1=R2，结果存在R1中
+goto Lreturn  
+
+
+L100:
+mov R1,R3   #R1=R3，结果存在R1中
+
+Lreturn:
+pop R4   #返回旧的R4
+pop R3   #返回旧的R3
+pop R2   #返回旧的R2
+mov sp,R15   # sp = R15
+pop R15    #重设R15的值，成为旧的R15
+ret    # pop pc
+
+L3:
+_pr R1   #打印最后的结果
+

@@ -1,0 +1,92 @@
+#一个等差数列an = a0 + (n-1)*d ，a0 = 1，n = 5，d =1，计算该等差数列的和，并将所得到的结果乘上n
+#<python代码：递归函数调用>
+#def acc(n,a0,d):
+#    if n == 1:
+#        return a0
+#    else:
+#        return(acc(n-1,a0,d)+(a0+d*(n-1)))   #递归调用累加函数 
+#if __name__=="__main__":
+#    n = 5     #需要累加的数的个数
+#    a0 = 1    #第一个数
+#    d = 1     #公差为1
+#    sum = acc(n,a0,d)
+#    x = sum *n   #使用结果乘n是为了验证n是否还是最初的n
+#    print(x)
+
+
+#将n放在R2上，a0放在R3上，d放在R4上，结果放在R1上
+#用到函数调用，使用R15表示fp
+#<汇编代码：递归函数调用>
+mov R15,10000   #R15表示fp
+mov sp,R15    #使初始sp和fp指向同一位置
+sub sp,sp,3
+
+mov R2,5      #对应于python代码中的n
+mov R3,1      #对应于python代码中的a0
+mov R4,1      #对应于python代码中的d
+
+store -1(R15),R4
+store -2(R15),R3
+store -3(R15),R2
+
+push R4        #传参数d
+push R3        #传参数a0
+push R2        #传参数n
+
+
+call Lacc        #调用函数acc(n,a0,d)
+goto Lprint
+
+Lacc:
+push R15
+mov R15,sp
+
+push R2
+push R3
+push R4
+push R5
+push R6
+push R7
+
+load R2,2(R15)  #n
+load R3,3(R15)    #R3 = a0
+load R4,4(R15)    #R4 = d
+
+sle R5,R2,1   #递归终止条件
+xor R5,R5,1
+beqz R5,La0
+
+push R4
+push R3
+sub R2,R2,1  #每次的n要减1
+push R2
+
+call Lacc
+mul R6,R2,R4
+add R7,R3,R6
+add R1,R1,R7
+goto Lpop    #将传递的参数pop出来
+
+La0:
+mov R1,R3
+goto Lreturn
+
+Lpop:
+pop R2
+pop R3
+pop R4
+
+Lreturn:
+pop R7
+pop R6
+pop R5
+pop R4
+pop R3
+pop R2
+mov sp,R15
+pop R15
+ret
+
+Lprint:
+mul R1,R1,R2
+_pr R1

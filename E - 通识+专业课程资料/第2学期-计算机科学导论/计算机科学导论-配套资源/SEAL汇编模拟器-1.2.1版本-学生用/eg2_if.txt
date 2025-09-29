@@ -1,0 +1,61 @@
+#<python代码：判断一个点是否在矩形内>
+#x0 = 4
+#y0 = 5
+#x1 = 1
+#y1 = 3
+#a = 3
+#b = 4
+
+#if ((x0<a) and (x1>a)) or ((x0>a) and (x1<a)):
+#    if ((y0<b) and (y1>b)) or ((y0>b) and (y1<b)):
+#        print("Yes!")
+#    else:
+#        print("No!")
+#else:
+#    print("No!")
+
+#使用R0，R2，R3，R4,R5,R6存储输入   
+#结果放在R1  如果在矩形内R1是1，否则是0   
+#<汇编代码：判断一个点是否在矩形内>
+mov R0,4  #x0
+mov R2,5  #y0
+mov R3,1  #x1
+mov R4,3  #y1
+mov R5,3  #a
+mov R6,4  #b
+
+#if (x0<a) and (x1>a)
+slt R7,R0,R5
+slt R8,R5,R3
+and R9,R7,R8
+
+#if (x0>a) and (x1<a)
+slt R7,R5,R0
+slt R8,R3,R5
+and R10,R7,R8
+
+or R11,R9,R10
+
+beqz R11,L2    #R9和R10都为0，goto L2
+
+#if (y0<b) and (y1>b)
+slt R7,R2,R6
+slt R8,R6,R4
+and R9,R7,R8
+
+#if (y0>b) and (y1<b)
+slt R7,R6,R2
+slt R8,R4,R6
+and R10,R7,R8
+
+or R12,R9,R10
+
+beqz R12,L2  #R9和R10都为0，goto L2
+
+L1:
+mov R1,1
+goto L3
+L2:
+mov R1,0
+L3:
+_pr R1

@@ -1,0 +1,62 @@
+#<Python代码：完成一组序列的选择排序，使得序列按照从小到大的顺序排列>
+#L = [8,10,7,16,10,3,9,7,20,2]
+#arrLength = len(L)
+#for i in range(0,arrLength,1):
+#    min = L[i]
+#    for j in range(i+1,arrLength,1):
+#        if min > L[j]:
+#            min,L[j] = L[j],min   #交换两个数
+#        else:
+#            continue
+#    L[i] = min
+#for i in range(0, arrLength, 1):
+#    print(L[i], end=" ")
+
+
+#使用_data将序列的长度以及序列进行存储，首地址为0
+#_data 0,[10,8,10,7,16,10,3,9,7,20,2]中，[]中的第一个数字10，表示序列的长度；后边的10数字为序列的数
+#排好序的序列仍然存储在原序列的位置，因为在选择排序中，是每个数之间的交换，所以不需要新的序列来存储
+
+#<汇编代码：完成一组序列的选择排序，使得序列按照从小到大的顺序排列>
+_data 0,[10,8,10,7,16,10,3,9,7,20,2]
+
+move R0,0  #R0=首地址0
+load R1,00(R0)  # R1存储序列的长度
+
+move R2,0    #R2 = i
+
+Lfor_i:
+slt R3,R2,R1
+beqz R3,Lpr  
+load R4,01(R2)  #R4 = min;min = arr [i],因为序列的第0个数是存储在内存地址1，所以加上偏移量1
+
+move R5,R2    #R5 = j
+
+Lfor_j:
+add R5,R5,1  #j从j+1开始
+slt R6,R5,R1
+xor R6,R6,1
+load R7,00(R5)  #R7 = arr[j]
+sle R0,R7,R4
+beqz R0,Lfor_j
+store 00(R5),R4
+move R4,R7
+beqz R6,Lfor_j
+
+Lcopy:
+store 01(R2),R4
+add R2,R2,1
+goto Lfor_i
+
+Lpr:
+#move R0,0    #循环打印中的i
+#sub R1,R1,1  
+#Lprint:
+#slt R2,R0,R1
+#load R3,01(R0)
+#_pr R3
+#add R0,R0,1   #i=i+1
+#xor R2,R2,1
+#beqz R2,Lprint
+
+_pr (1)%10

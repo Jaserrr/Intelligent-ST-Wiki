@@ -1,0 +1,385 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	switch.ASM
+	Object File:	switch.hex
+	List File:	switch.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				;±¾³ÌÐòÍê³ÉÎÂ¶È²É¼¯²¢ÔÚ×î×ó±ßµÄ2Ö»ÊýÂë¹ÜÏÔÊ¾ÎÂ¶ÈÖµ
+    2:
+    3:		N      0030	LEDSCAN  	EQU 30H  ; LEDÊýÂë¹ÜÉ¨ÃèÂëµ¥Ôª
+    4:		N      0050	LED_D0  	EQU 50H  ; 8¸öLEDÊýÂë¹ÜÊý¾Ý»º´æÆ÷
+    5:		N      0051	LED_D1  	EQU 51H
+    6:		N      0052	LED_D2  	EQU 52H
+    7:		N      0053	LED_D3  	EQU 53H
+    8:		N      0054	LED_D4  	EQU 54H
+    9:		N      0055	LED_D5  	EQU 55H
+   10:		N      0056	LED_D6  	EQU 56H
+   11:		N      0057	LED_D7  	EQU 57H
+   12:		N      0040	TDATA_H16	EQU 40H	 ; ÎÂ¶ÈÊ®Áù½øÖÆÖµ
+   13:		N      0041	T_NUM		EQU 41H	 ; ¶¨Ê±Ñ­»·´ÎÊý
+   14:		B	 A2	ADC_STAR	BIT P2.2 ;  ADÆô¶¯Î»
+   15:		B	 A1	ADC_RD		BIT P2.1 ;  ADÖµ¶ÁÈ¡¿ØÖÆÎ»
+   16:		B	 B4	ADC_EOC		BIT P3.4 ;  AD×ª»»Íê±Ï²éÑ¯Î»
+   17:		B	 A6	LEDSEG_LE	BIT P2.6 ; LEDÊýÂë¹Ü¶ÎÊý¾ÝËø´æÎ»
+   18:		B	 A7	BITSAN_LE	BIT P2.7 ; LEDÊýÂë¹Ü»ò°´Å¥Î»É¨ÃèÊý¾ÝËø´æÎ»
+   19:
+   20:
+   21:
+   22:		N      0000				ORG		0000H
+   23:	  0000	21 00					AJMP   	MAIN
+   24:
+   25:		N      000B				ORG    	000BH				;¶¨Ê±Æ÷0  ÓÃÓÚLED×´Ì¬±ä»¯ AD²ÉÑù
+   26:	  000B	21 AD					AJMP   	TIME0
+   27:
+   28:		N      0100	           	ORG    	0100H
+   29:	  0100	75 81 60	MAIN:      	MOV    	SP,#60H
+   30:	  0103	75 89 01	           	MOV    	TMOD,#01H		   	;¶¨Ê±Æ÷0¹¤×÷·½Ê½1
+   31:	  0106	75 8A DC	           	MOV    	TL0,#0DCH           ;×°ÔØ¼ÆÊý³õÖµ
+   32:	  0109	75 8C 0B	           	MOV    	TH0,#0BH            ;Ã¿´ÎÑ­»·125ms
+   33:
+   34:	  010C	D2 8C		           	SETB   	TR0                 ;¿ªÆô¶¨Ê±Æ÷0
+   35:	  010E	D2 A9		           	SETB   	ET0                 ;ÔÊÐí¶¨Ê±0ÖÐ¶Ï
+   36:	  0110	D2 AF		           	SETB   	EA
+   37:
+   38:
+   39:	  0112	75 40 19	           	MOV    	TDATA_H16,#25		;µ±Ç°²âµÃµÄÎÂ¶ÈÖµ,´Ë³õ¸³Öµ32¶È£¬Êµ¼ÊÃ»ÓÐÒâÒå,ÒòÎª³ÌÐ
+				òÔËÐÐºóÁ¢Âí¸üÐÂ
+   40:	  0115	75 41 08	           	MOV    	T_NUM,#08H          ;125ms»ù±¾¶¨Ê±Ñ­»·´ÎÊý
+   41:	  0118	C2 A1			   		CLR    	ADC_RD			 	; ADÊý¾Ý¶ÁÈ¡ÎÞÐ§
+   42:	  011A	C2 A2			   		CLR    	ADC_STAR			; ADÆô¶¯ÎÞÐ§
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   43:
+   44:	  011C	31 22		HERE:      	ACALL 	SHOW
+   45:	  011E	31 40		           	ACALL 	DISP
+   46:	  0120	80 FA		           	JMP 	HERE
+   47:
+   48:
+   49:
+   50:	  0122			SHOW:
+   51:	  0122	E5 40		           	MOV    	A,TDATA_H16			;TDATA_H16Àï·Å×ÅÊµ¼ÊÎÂ¶È
+   52:	  0124	75 F0 0A	           	MOV    	B,#0AH				;²ðÊý×Ö
+   53:	  0127	84		           	DIV    	AB
+   54:	  0128	F5 50		           	MOV    	LED_D0,A			;Ê®Î»ËÍ54H
+   55:	  012A	85 F0 51	           	MOV    	LED_D1,B			;¸öÎ»ËÍ55H
+   56:	  012D	75 52 10		   		MOV    	LED_D2, #10H		;ÓÒ±ß6¸öLED²»ÏÔÊ¾
+   57:	  0130	75 53 10	           	MOV    	LED_D3, #10H
+   58:	  0133	75 54 10		   		MOV    	LED_D4, #10H
+   59:	  0136	75 55 10	           	MOV    	LED_D5, #10H
+   60:	  0139	75 56 10		   		MOV    	LED_D6, #10H
+   61:	  013C	75 57 10		   		MOV    	LED_D7, #10H
+   62:	  013F	22		           	RET
+   63:
+   64:
+   65:	  0140	C0 83		DISP:   	PUSH	DPH
+   66:	  0142	C0 82		        	PUSH 	DPL
+   67:	  0144	C0 D0		        	PUSH 	PSW
+   68:	  0146	C0 E0		        	PUSH 	ACC
+   69:	  0148	78 50		        	MOV 	R0, #LED_D0			;ÏÔÊ¾»º³åµ¥ÔªÊ×µØÖ·
+   70:	  014A	75 30 FE	       	 	MOV 	LEDSCAN, #0FEH  	;Î»¿ØÂë
+   71:	  014D			LD0:
+   72:	  014D	75 80 FF	        	MOV 	P0,#0FFH	    	;ÇåÎ»¿Ø¿Ú
+   73:	  0150	D2 A7		        	SETB 	BITSAN_LE			; LEDÊýÂë¹Ü»ò°´Å¥Î»É¨ÃèÊý¾ÝËø´æÎ»
+   74:	  0152	00		        	NOP
+   75:	  0153	C2 A7		        	CLR 	BITSAN_LE
+   76:	  0155	90 01 90	        	MOV 	DPTR, #TABLE    	;²é¶ÎÂë
+   77:	  0158	E6		        	MOV 	A, @R0
+   78:	  0159	93		        	MOVC 	A, @A+DPTR
+   79:	  015A	F5 80			 		MOV 	P0,A            	;ËÍ¶ÎÂë
+   80:	  015C	D2 A6		        	SETB 	LEDSEG_LE			; LEDÊýÂë¹Ü¶ÎÊý¾ÝËø´æÎ»
+   81:	  015E	00		        	NOP
+   82:	  015F	C2 A6		        	CLR 	LEDSEG_LE
+   83:	  0161	E5 30		        	MOV 	A, LEDSCAN
+   84:	  0163	F5 80		        	MOV 	P0,A            	;ËÍÎ»¿ØÂë
+   85:	  0165	D2 A7			  		SETB 	BITSAN_LE			; LEDÊýÂë¹Ü»ò°´Å¥Î»É¨ÃèÊý¾ÝËø´æÎ»
+   86:	  0167	00		        	NOP
+   87:	  0168	C2 A7		        	CLR 	BITSAN_LE
+   88:	  016A	31 A4		        	ACALL  	DELAY
+   89:	  016C	08		        	INC 	R0
+   90:	  016D	E5 30		        	MOV 	A, LEDSCAN
+   91:	  016F	30 E7 05	        	JNB  	ACC.7,LD1
+   92:	  0172	23		        	RL  	A
+   93:	  0173	F5 30		        	MOV 	LEDSCAN, A
+   94:	  0175	21 4D		        	AJMP 	LD0
+   95:	  0177	75 80 00	LD1:    	MOV 	P0,#00	        	;Çå¶Î¿Ø¿Ú,ÐÞ¸Ä
+   96:	  017A	D2 A6		        	SETB 	LEDSEG_LE			; LEDÊýÂë¹Ü¶ÎÊý¾ÝËø´æÎ»
+   97:	  017C	00		        	NOP
+   98:	  017D	C2 A6		        	CLR 	LEDSEG_LE
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+   99:	  017F	75 80 FF	       		MOV 	P0,#0FFH	    	;ÇåÎ»¿Ø¿Ú
+  100:	  0182	D2 A7			  		SETB 	BITSAN_LE			; LEDÊýÂë¹Ü»ò°´Å¥Î»É¨ÃèÊý¾ÝËø´æÎ»
+  101:	  0184	00		        	NOP
+  102:	  0185	C2 A7		        	CLR 	BITSAN_LE
+  103:	  0187	D0 E0		        	POP 	ACC
+  104:	  0189	D0 D0		        	POP 	PSW
+  105:	  018B	D0 82		        	POP 	DPL
+  106:	  018D	D0 83		        	POP 	DPH
+  107:	  018F	22		        	RET
+  108:
+  109:	  0190	3F 06 5B 4F	TABLE:    	DB 3FH,06H,5BH,4FH,66H     ; 0    1    2   3   4
+	  0194	66
+  110:	  0195	6D 7D 07 7F	          	DB 6DH,7DH,07H,7FH,6FH     ; 5    6    7   8   9
+	  0199	6F
+  111:	  019A	77 7C 39 5E	          	DB 77H,7CH,39H,5EH,79H     ; A    B    C   D   E
+	  019E	79
+  112:	  019F	71 00 76 38	          	DB 71H,00H,76H,38H,40H     ; F    Ãð	 H   L	 -
+	  01A3	40
+  113:
+  114:	  01A4	79 02		DELAY:    	MOV 	R1,#02H            ;ÑÓÊ±Ô¼1ms
+  115:	  01A6	7A 00		DEL0:     	MOV 	R2, #00H
+  116:	  01A8	DA FE		DEL1:     	DJNZ 	R2, DEL1
+  117:	  01AA	D9 FA		          	DJNZ 	R1, DEL0
+  118:	  01AC	22			      	RET
+  119:
+  120:
+  121:
+  122:	  01AD			TIME0:
+  123:	  01AD	C0 83		          	PUSH 	DPH
+  124:	  01AF	C0 82		          	PUSH 	DPL
+  125:	  01B1	C0 E0		          	PUSH 	ACC
+  126:	  01B3	C0 D0		          	PUSH 	PSW
+  127:	  01B5	75 8A DC	          	MOV 	TL0,#0DCH
+  128:	  01B8	75 8C 0B	          	MOV 	TH0,#0BH
+  129:	  01BB	E5 41		          	MOV 	A,T_NUM
+  130:	  01BD	14		          	DEC 	A
+  131:	  01BE	F5 41		          	MOV 	T_NUM,A
+  132:	  01C0	70 20		          	JNZ 	RET0
+  133:	  01C2	75 41 08	          	MOV 	T_NUM,#08H
+  134:	  01C5	75 90 00	          	MOV 	P1,#00H             ;Æô¶¯IN0Í¨µÀ
+  135:	  01C8	D2 A2		          	SETB 	ADC_STAR
+  136:	  01CA	00			  		NOP
+  137:	  01CB	C2 A2		          	CLR 	ADC_STAR
+  138:	  01CD			WW:
+  139:	  01CD	30 B4 FD	          	JNB 	ADC_EOC,WW      	; ²éÑ¯×ª»¯½á¹û,ÕâÀïÒ²¿ÉÒÔÊ¹ÓÃÈí¼þÑÓÊ±100ms£¬ÒÔ±ÜÃâËÀ
+				Ñ­»·¡£
+  140:	  01D0	D2 A1		          	SETB 	ADC_RD
+  141:	  01D2	00		          	NOP
+  142:	  01D3	75 90 FF	          	MOV 	P1,#0FFH            ; ¶ÁÊý¾ÝÇ°ÏÈÐ´Èë¸ßµçÆ½
+  143:	  01D6	E5 90			  		MOV 	A,P1
+  144:	  01D8	C2 A1			  		CLR 	ADC_RD
+  145:	  01DA	94 22		          	SUBB 	A,#22H             	; ¼õÆ«ÒÆ24
+  146:	  01DC	90 01 EB	          	MOV 	DPTR,#TEM_TAB
+  147:	  01DF	93		          	MOVC 	A,@A+DPTR
+  148:	  01E0	F5 40		          	MOV 	TDATA_H16,A
+  149:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  150:	  01E2	D0 D0		RET0:     	POP 	PSW
+  151:	  01E4	D0 E0		          	POP 	ACC
+  152:	  01E6	D0 82		          	POP 	DPL
+  153:	  01E8	D0 83		          	POP 	DPH
+  154:	  01EA	32		          	RETI
+  155:
+  156:	  01EB	63 61 5F 5D	TEM_TAB:   	DB     63H,61H,5FH,5DH,5CH,5AH,59H,58H,56H,55H,54H,52H,51H,50H,4FH,4EH
+	  01EF	5C 5A 59 58
+	  01F3	56 55 54 52
+	  01F7	51 50 4F 4E
+  157:	  01FB	4D 4C 4B 4A	           	DB     4DH,4CH,4BH,4AH,49H,48H,47H,46H,45H,44H,43H,42H,41H,41H,40H,3FH
+	  01FF	49 48 47 46
+	  0203	45 44 43 42
+	  0207	41 41 40 3F
+  158:	  020B	3E 3E 3D 3C	           	DB     3EH,3EH,3DH,3CH,3BH,3AH,3AH,39H,38H,38H,37H,37H,36H,35H,34H,34H
+	  020F	3B 3A 3A 39
+	  0213	38 38 37 37
+	  0217	36 35 34 34
+  159:	  021B	33 33 32 32	           	DB     33H,33H,32H,32H,31H,30H,30H,2FH,2EH,2EH,2DH,2DH,2CH,2CH,2BH,2BH
+	  021F	31 30 30 2F
+	  0223	2E 2E 2D 2D
+	  0227	2C 2C 2B 2B
+  160:	  022B	2A 2A 29 29	           	DB     2AH,2AH,29H,29H,28H,28H,27H,27H,26H,26H,25H,25H,24H,24H,23H,23H
+	  022F	28 28 27 27
+	  0233	26 26 25 25
+	  0237	24 24 23 23
+  161:	  023B	22 22 21 21	           	DB     22H,22H,21H,21H,20H,20H,1FH,1FH,1EH,1EH,1EH,1DH,1DH,1CH,1CH,1BH
+	  023F	20 20 1F 1F
+	  0243	1E 1E 1E 1D
+	  0247	1D 1C 1C 1B
+  162:	  024B	1B 1B 1A 1A	           	DB     1BH,1BH,1AH,1AH,19H,19H,18H,18H,18H,17H,17H,16H,16H,15H,15H,15H
+	  024F	19 19 18 18
+	  0253	18 17 17 16
+	  0257	16 15 15 15
+  163:	  025B	15 15 13 13	           	DB     15H,15H,13H,13H,12H,12H,12H,11H,11H,10H,10H,0FH,0FH,0FH,0EH,0EH
+	  025F	12 12 12 11
+	  0263	11 10 10 0F
+	  0267	0F 0F 0E 0E
+  164:	  026B	0D 0D 0C 0C	           	DB     0DH,0DH,0CH,0CH,0CH,0BH,0BH,0AH,0AH,0AH,09H,09H,08H,08H,08H,07H
+	  026F	0C 0B 0B 0A
+	  0273	0A 0A 09 09
+	  0277	08 08 08 07
+  165:	  027B	07 06 06 05	           	DB     07H,06H,06H,05H,05H,04H,04H,04H,03H,03H,02H,02H,01H,01H,00H,00H
+	  027F	05 04 04 04
+	  0283	03 03 02 02
+	  0287	01 01 00 00
+  166:
+  167:
+  168:				END
+  169:
+  170:
+  171:
+
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+ADC_EOC				  BIT	      B4	  16
+ADC_RD				  BIT	      A1	  15
+ADC_STAR			  BIT	      A2	  14
+B				  DATA	      F0
+BITSAN_LE			  BIT	      A7	  18
+CY				  BIT	      D7
+DEL0				  CODE	    01A6	 115
+DEL1				  CODE	    01A8	 116
+DELAY				  CODE	    01A4	 114
+DISP				  CODE	    0140	  65
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+HERE				  CODE	    011C	  44
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LD0				  CODE	    014D	  71
+LD1				  CODE	    0177	  95
+LEDSCAN				  NUMBER    0030	   3
+LEDSEG_LE			  BIT	      A6	  17
+LED_D0				  NUMBER    0050	   4
+LED_D1				  NUMBER    0051	   5
+LED_D2				  NUMBER    0052	   6
+LED_D3				  NUMBER    0053	   7
+LED_D4				  NUMBER    0054	   8
+LED_D5				  NUMBER    0055	   9
+LED_D6				  NUMBER    0056	  10
+LED_D7				  NUMBER    0057	  11
+MAIN				  CODE	    0100	  29
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RET0				  CODE	    01E2	 150
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SHOW				  CODE	    0122	  50
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+TABLE				  CODE	    0190	 109
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TDATA_H16			  NUMBER    0040	  12
+TEM_TAB				  CODE	    01EB	 156
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIME0				  CODE	    01AD	 122
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+T_NUM				  NUMBER    0041	  13
+WR				  BIT	      B6
+WW				  CODE	    01CD	 138

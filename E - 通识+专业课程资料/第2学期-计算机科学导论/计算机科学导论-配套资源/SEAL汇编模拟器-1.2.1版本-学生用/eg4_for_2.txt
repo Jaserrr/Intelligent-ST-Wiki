@@ -1,0 +1,24 @@
+#<python代码：for循环求a0+a1+a2+…+a9>
+#a = [84,65,21,74,58,46,37,88,97,10]
+#s = 0
+#for i in range(len(a)):
+#    s = s+a[i]
+#print(s)
+
+#使用_data存储a0，a1...a9
+#将计算结果放在R1上
+#<汇编代码：for循环求a0+a1+a2+…+a9>
+_data 1,[84,65,21,74,58,46,37,88,97,10]
+mov R1,0 #存结果
+mov R2,0 #计数
+mov R5,1 #存储首地址
+L1:
+slt R3,R2,10
+beqz R3,L2
+load R4,0(R5)
+add R5,R5,1   #每次所取数据的地址都会加1
+add R1,R1,R4
+add R2,R2,1
+goto L1
+L2:
+_pr R1

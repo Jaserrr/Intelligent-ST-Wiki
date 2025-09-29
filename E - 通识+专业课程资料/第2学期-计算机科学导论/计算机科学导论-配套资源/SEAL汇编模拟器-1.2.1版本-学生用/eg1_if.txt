@@ -1,0 +1,21 @@
+#<python代码：两个数字比较大小，并将二者中较小的数字输出>
+#a = 5
+#b = 7
+#if a <=b:   
+#   print(a)
+#else:      
+#   print(b)
+
+
+#<汇编代码：两个数字比较大小>
+#输入两个数字到R0，R2,输出到R1
+mov R0,5     #a = 5
+mov R2,7     #b = 7
+sle R3,R0,R2   
+beqz R3,L1     
+mov R1,R0       
+goto L2
+L1:          
+mov R1,R2
+L2:
+_pr R1

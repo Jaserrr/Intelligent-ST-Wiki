@@ -1,0 +1,66 @@
+# <Python代码：完成一组序列的插入排序,使得序列按照从小到大的顺序排列>
+#L = [8, 10, 7, 16, 10, 3, 9, 7, 20, 2]  #给定的待排序数组
+#arrLength = len(L)   #求出数组的长度
+#for i in range(1,arrLength):    #从第二个元素开始遍历，例子中也就是从10开始往后遍历
+#    min = L[i]         # 假设最小值
+#    k = i;     #设置哨兵，用于监视真正最小值的正确位置
+#    for j in range(i-1,-1,-1):       #接着从[0,i-1]的位置上与min比较
+#        if min < L[j]:             #如果min较小
+#            L[j+1] = L[j]        #arr[j] 向后走一个位置
+#            k = j                    #同时哨兵向前走一个位置
+#        else:
+#            break
+#    L[k] = min    #循环结束将min放在正确的位置
+#for i in range(0,arrLength,1):    #循环输出排序好的数组
+#    print (L[i], end  = " ")
+
+
+
+#使用_data将一组序列存储，首地址为0，地址0处存储序列的长度，从地址1处存储该序列的数据
+#_data 0,[10,8,10,7,16,10,3,9,7,20,2]表示将序列的长度10存储在内存地址0处，
+#将8开始的序列依次存储在内存地址1开始的内存中
+#要对序列[8,10,7,16,10,3,9,7,20,2]进行排序
+#排好序的序列存储在原序列处，因为插入排序是将数字存储到本趟比较中正确的位置，所以不需要新的序列进行存储
+
+#<汇编代码：完成一组序列的插入排序,使得序列按照从小到大的顺序排列>
+_data 0,[10,8,10,7,16,10,3,9,7,20,2]
+
+move R0,0  #R0 = 首地址
+load R1,00(R0)  #R1 = 10,表示序列长度
+
+move R2,1  #R2 = i，从第二个元素开始遍历
+Lfor_i:
+slt R3,R2,R1  #判断i是否小于序列长度
+load R4,01(R2)  #R4存储假设最小值
+move R0,R2      #R0作为哨兵，监视最小值的正确位置，R0 = k
+beqz R3,Lpr
+
+sub R5,R2,1   #R5 = j
+Lfor_j:
+sle R6,R5,0      #for j in range(i-1,-1,-1)
+load R7,01(R5)   #R7 = arr[j]
+slt R8,R4,R7     #if min < arr[j]
+beqz R8,Lcopy
+store 02(R5),R7   #arr[j+1] = arr[j]
+move R0,R5
+sub R5,R5,1      #将j减1
+beqz R6,Lfor_j
+Lcopy:
+store 01(R0),R4
+add R2,R2,1     #将i加1
+goto Lfor_i
+
+Lpr:
+#move R0,1    #输出循环中的i
+#Lprint:
+#slt R2,R0,R1
+#load R3,00(R0)
+#add R0,R0,1
+#_pr R3
+#xor R2,R2,1
+#beqz R2,Lprint
+_pr (1)%10
+
+
+
+

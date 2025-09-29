@@ -1,0 +1,86 @@
+#<python代码：求最大公约数>
+# def GCD(x,y):
+# 	if x < y:
+# 		x,y = y,x
+# 	if x%y == 0:
+#               print(x//y)
+# 		return (y)
+#       gcd = GCD(x%y,y)
+#       print(x//gcd)
+#       return gcd
+# a = 48   # 用户自己修改
+# b = 20   # 用户自己修改
+# print (GCD(a,b))
+
+#主函数有两个局部变量，分别是a = 48, b = 20
+#求这两个数的最大公约数，并将结果保存到R1中
+
+#<汇编代码：求两个数的最大公约数>
+move R15, 10000   #R15表示fp，将基地址设为10000
+move sp, R15     #设置当前栈顶位置
+
+move R2, 48   # a = 48
+move R3, 20   # b = 20
+
+#move R2, 49   # a = 49
+#move R3, 59   # b = 59
+
+#move R2, 569
+#move R3, 784
+
+push R3   # 传参数a
+push R2   # 传参数b
+
+
+call Lgcd   #调用求最大公约数函数Lgcd
+goto Lprint   #打印结果
+
+Lgcd:   #gcd(x,y)  push pc
+_pause
+push R15   
+move R15,sp    # 新的fp等于sp
+push R2   
+push R3
+push R4
+push R5
+load R2, 02(R15)   # R2 = a
+load R3, 03(R15)   # R3 = b
+
+slt R4,R2,R3  #比较R2与R3的大小，使得R2存大值，R3存小值
+beqz R4, Lmod   
+load R2, 03(R15)   # R2 = b
+load R3, 02(R15)   # R3 = a
+
+Lmod:   #求模，将求模的结果保存在R5中
+div R5,R2,R3
+mul R5,R5,R3
+sub R4,R2,R5
+
+beqz R4,L1
+push R3
+push R4
+call Lgcd
+div R5,R2,R1
+_pr R5
+goto Lreturn
+
+
+L1:
+div R4,R2,R3
+_pr R4
+move R1,R3
+
+
+Lreturn:
+pop R5
+pop R4
+pop R3
+pop R2
+move sp,R15   #sp = fp
+pop R15       #重设fp的值，成为旧的fp
+ret           #pop pc
+
+
+Lprint:  #打印输出结果，输出结果保存在R1中
+_pr R1
+
