@@ -1,0 +1,7 @@
+0000,C2 B0,,           CLR P3.0
+0002,20 B3 FD,LOOP,LOOP:      JB P3.3, LOOP
+0005,D2 B0,,           SETB P3.0
+0007,00,,           NOP
+0008,C2 B0,,           CLR P3.0
+000A,02 00 02,,           LJMP LOOP
+000E,,,           END

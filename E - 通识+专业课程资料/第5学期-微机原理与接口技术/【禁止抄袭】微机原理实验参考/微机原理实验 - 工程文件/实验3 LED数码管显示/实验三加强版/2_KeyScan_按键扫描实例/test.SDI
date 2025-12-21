@@ -1,0 +1,78 @@
+0000,75 90 F0,START,START:      MOV P1, #0F0H     ;关掉所有LED管
+0003,75 B0 F0,KEYSCAN,KEYSCAN:    MOV P3, #0F0H     ;列选全部输出0,此时若有开关按下,则行信号必然有0
+0006,D3,,            SETB C
+0007,82 A0,,            ANL C, P2.0
+0009,82 A1,,            ANL C, P2.1
+000B,82 A2,,            ANL C, P2.2
+000D,82 A3,,            ANL C, P2.3
+000F,40 F2,,            JC KEYSCAN
+,,,
+0011,75 B0 FE,COL0,COL0:       MOV P3, #0FEH     ;第0列选通
+0014,20 A0 05,ELE00,ELE00:      JB P2.0, ELE10
+0017,74 E1,,            MOV A, #0E1H
+0019,02 00 A0,,            LJMP KEY_Delay
+001C,20 A1 05,ELE10,ELE10:      JB P2.1, ELE20
+001F,74 D1,,            MOV A, #0D1H
+0021,02 00 A0,,            LJMP KEY_Delay
+0024,20 A2 05,ELE20,ELE20:      JB P2.2, ELE30
+0027,74 B1,,            MOV A, #0B1H
+0029,02 00 A0,,            LJMP KEY_Delay
+002C,20 A3 05,ELE30,ELE30:      JB P2.3, COL1
+002F,74 71,,            MOV A, #71H
+0031,02 00 A0,,            LJMP KEY_Delay
+,,,
+0034,75 B0 FD,COL1,COL1:       MOV P3, #0FDH     ;第1列选通
+0037,20 A0 05,ELE01,ELE01:      JB P2.0, ELE11
+003A,74 E2,,            MOV A, #0E2H
+003C,02 00 A0,,            LJMP KEY_Delay
+003F,20 A1 05,ELE11,ELE11:      JB P2.1, ELE21
+0042,74 D2,,            MOV A, #0D2H
+0044,02 00 A0,,            LJMP KEY_Delay
+0047,20 A2 05,ELE21,ELE21:      JB P2.2, ELE31
+004A,74 B2,,            MOV A, #0B2H
+004C,02 00 A0,,            LJMP KEY_Delay
+004F,20 A3 05,ELE31,ELE31:      JB P2.3, COL2
+0052,74 72,,            MOV A, #072H
+0054,02 00 A0,,            LJMP KEY_Delay
+,,,
+0057,75 B0 FB,COL2,COL2:       MOV P3, #0FBH     ;第2列选通
+005A,20 A0 05,ELE02,ELE02:      JB P2.0, ELE12
+005D,74 E4,,            MOV A, #0E4H
+005F,02 00 A0,,            LJMP KEY_Delay
+0062,20 A1 05,ELE12,ELE12:      JB P2.1, ELE22
+0065,74 D4,,            MOV A, #0D4H
+0067,02 00 A0,,            LJMP KEY_Delay
+006A,20 A2 05,ELE22,ELE22:      JB P2.2, ELE32
+006D,74 B4,,            MOV A, #0B4H
+006F,02 00 A0,,            LJMP KEY_Delay
+0072,20 A3 05,ELE32,ELE32:      JB P2.3, COL3
+0075,74 74,,            MOV A, #74H
+0077,02 00 A0,,            LJMP KEY_Delay
+,,,
+007A,75 B0 F7,COL3,COL3:       MOV P3, #0F7H     ;第3列选通
+007D,20 A0 05,ELE03,ELE03:      JB P2.0, ELE13
+0080,74 E8,,            MOV A, #0E8H
+0082,02 00 A0,,            LJMP KEY_Delay
+0085,20 A1 05,ELE13,ELE13:      JB P2.1, ELE23
+0088,74 D8,,            MOV A, #0D8H
+008A,02 00 A0,,            LJMP KEY_Delay
+008D,20 A2 05,ELE23,ELE23:      JB P2.2, ELE33
+0090,74 B8,,            MOV A, #0B8H
+0092,02 00 A0,,            LJMP KEY_Delay
+0095,20 A3 05,ELE33,ELE33:      JB P2.3, NOBTN
+0098,74 78,,            MOV A, #78H
+009A,02 00 A0,,            LJMP KEY_Delay
+009D,02 00 03,NOBTN,NOBTN:      LJMP KEYSCAN
+,,,
+00A0,F5 90,KEY_Delay,KEY_Delay:  MOV P1, A
+00A2,75 B0 F0,,            MOV P3, #0F0H     ;列选全部输出0,此时若有开关按下,则行信号必然有0
+00A5,D3,,            SETB C
+00A6,82 A0,,            ANL C, P2.0
+00A8,82 A1,,            ANL C, P2.1
+00AA,82 A2,,            ANL C, P2.2
+00AC,82 A3,,            ANL C, P2.3
+00AE,50 F0,,            JNC KEY_Delay
+00B0,75 90 F0,,            MOV P1, #0F0H
+00B3,02 00 03,,            LJMP KEYSCAN
+,,,
+000E,,,            END

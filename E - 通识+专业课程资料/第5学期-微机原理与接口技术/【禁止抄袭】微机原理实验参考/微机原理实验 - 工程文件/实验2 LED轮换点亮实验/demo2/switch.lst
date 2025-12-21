@@ -1,0 +1,155 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	switch.ASM
+	Object File:	switch.hex
+	List File:	switch.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG 0000H
+    2:	  0000	02 01 00	LJMP MAIN  ; 跳转到主程序
+    3:
+    4:		N      0100	ORG 0100H
+    5:	  0100			MAIN:
+    6:	  0100	78 08		MOV R0, #08H  ; 循环8次（覆盖P1.0~P1.7共8个LED）
+    7:	  0102	74 FE		MOV A, #0FEH  ; 初始值：二进制11111110 → P1.0=0（亮），P1.1~P1.7=1（灭）
+    8:
+    9:	  0104			LOOP:
+   10:	  0104	F5 90		MOV P1, A     ; 将电平状态输出到P1口（控制LED）
+   11:	  0106	12 01 0E	LCALL DELAY   ; 延时保持当前亮灯状态
+   12:	  0109	23		RL A          ; 左移指令：低电平（亮灯）从P1.0→P1.1→...→P1.7移动
+   13:	  010A	D8 F8		DJNZ R0, LOOP ; 循环次数减1，未到8次则继续
+   14:	  010C	80 F2		SJMP MAIN     ; 循环完成后重新开始，往复执行
+   15:
+   16:				; 延时函数（数值越小，速度越快）
+   17:	  010E			DELAY:
+   18:	  010E	7F 1F		MOV R7, #1FH  ; 外层循环次数（控制总延时）
+   19:	  0110			DELAY0:
+   20:	  0110	7E 3F		MOV R6, #3FH  ; 中层循环次数
+   21:	  0112			DELAY1:
+   22:	  0112	7D 3F		MOV R5, #3FH  ; 内层循环次数
+   23:	  0114	DD FE		DJNZ R5, $    ; 内层空循环（消耗时间）
+   24:	  0116	DE FA		DJNZ R6, DELAY1
+   25:	  0118	DF F6		DJNZ R7, DELAY0
+   26:	  011A	22		RET
+   27:
+   28:				END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+DELAY				  CODE	    010E	  17
+DELAY0				  CODE	    0110	  19
+DELAY1				  CODE	    0112	  21
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LOOP				  CODE	    0104	   9
+MAIN				  CODE	    0100	   5
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6

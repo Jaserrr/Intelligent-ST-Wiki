@@ -1,0 +1,3 @@
+START: MOV P1, P0
+       JMP START
+END

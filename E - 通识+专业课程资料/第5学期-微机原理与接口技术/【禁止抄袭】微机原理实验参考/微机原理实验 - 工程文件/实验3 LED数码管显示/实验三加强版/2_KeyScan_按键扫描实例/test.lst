@@ -1,0 +1,231 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	test.asm
+	Object File:	test.hex
+	List File:	test.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:	  0000	75 90 F0	START:      MOV P1, #0F0H     ;关掉所有LED管
+    2:	  0003	75 B0 F0	KEYSCAN:    MOV P3, #0F0H     ;列选全部输出0,此时若有开关按下,则行信号必然有0
+    3:	  0006	D3		            SETB C
+    4:	  0007	82 A0		            ANL C, P2.0
+    5:	  0009	82 A1		            ANL C, P2.1
+    6:	  000B	82 A2		            ANL C, P2.2
+    7:	  000D	82 A3		            ANL C, P2.3
+    8:	  000F	40 F2		            JC KEYSCAN
+    9:
+   10:	  0011	75 B0 FE	COL0:       MOV P3, #0FEH     ;第0列选通
+   11:	  0014	20 A0 05	ELE00:      JB P2.0, ELE10
+   12:	  0017	74 E1		            MOV A, #0E1H
+   13:	  0019	02 00 A0	            LJMP KEY_Delay
+   14:	  001C	20 A1 05	ELE10:      JB P2.1, ELE20
+   15:	  001F	74 D1		            MOV A, #0D1H
+   16:	  0021	02 00 A0	            LJMP KEY_Delay
+   17:	  0024	20 A2 05	ELE20:      JB P2.2, ELE30
+   18:	  0027	74 B1		            MOV A, #0B1H
+   19:	  0029	02 00 A0	            LJMP KEY_Delay
+   20:	  002C	20 A3 05	ELE30:      JB P2.3, COL1
+   21:	  002F	74 71		            MOV A, #71H
+   22:	  0031	02 00 A0	            LJMP KEY_Delay
+   23:
+   24:	  0034	75 B0 FD	COL1:       MOV P3, #0FDH     ;第1列选通
+   25:	  0037	20 A0 05	ELE01:      JB P2.0, ELE11
+   26:	  003A	74 E2		            MOV A, #0E2H
+   27:	  003C	02 00 A0	            LJMP KEY_Delay
+   28:	  003F	20 A1 05	ELE11:      JB P2.1, ELE21
+   29:	  0042	74 D2		            MOV A, #0D2H
+   30:	  0044	02 00 A0	            LJMP KEY_Delay
+   31:	  0047	20 A2 05	ELE21:      JB P2.2, ELE31
+   32:	  004A	74 B2		            MOV A, #0B2H
+   33:	  004C	02 00 A0	            LJMP KEY_Delay
+   34:	  004F	20 A3 05	ELE31:      JB P2.3, COL2
+   35:	  0052	74 72		            MOV A, #072H
+   36:	  0054	02 00 A0	            LJMP KEY_Delay
+   37:
+   38:	  0057	75 B0 FB	COL2:       MOV P3, #0FBH     ;第2列选通
+   39:	  005A	20 A0 05	ELE02:      JB P2.0, ELE12
+   40:	  005D	74 E4		            MOV A, #0E4H
+   41:	  005F	02 00 A0	            LJMP KEY_Delay
+   42:	  0062	20 A1 05	ELE12:      JB P2.1, ELE22
+   43:	  0065	74 D4		            MOV A, #0D4H
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0067	02 00 A0	            LJMP KEY_Delay
+   45:	  006A	20 A2 05	ELE22:      JB P2.2, ELE32
+   46:	  006D	74 B4		            MOV A, #0B4H
+   47:	  006F	02 00 A0	            LJMP KEY_Delay
+   48:	  0072	20 A3 05	ELE32:      JB P2.3, COL3
+   49:	  0075	74 74		            MOV A, #74H
+   50:	  0077	02 00 A0	            LJMP KEY_Delay
+   51:
+   52:	  007A	75 B0 F7	COL3:       MOV P3, #0F7H     ;第3列选通
+   53:	  007D	20 A0 05	ELE03:      JB P2.0, ELE13
+   54:	  0080	74 E8		            MOV A, #0E8H
+   55:	  0082	02 00 A0	            LJMP KEY_Delay
+   56:	  0085	20 A1 05	ELE13:      JB P2.1, ELE23
+   57:	  0088	74 D8		            MOV A, #0D8H
+   58:	  008A	02 00 A0	            LJMP KEY_Delay
+   59:	  008D	20 A2 05	ELE23:      JB P2.2, ELE33
+   60:	  0090	74 B8		            MOV A, #0B8H
+   61:	  0092	02 00 A0	            LJMP KEY_Delay
+   62:	  0095	20 A3 05	ELE33:      JB P2.3, NOBTN
+   63:	  0098	74 78		            MOV A, #78H
+   64:	  009A	02 00 A0	            LJMP KEY_Delay
+   65:	  009D	02 00 03	NOBTN:      LJMP KEYSCAN
+   66:
+   67:	  00A0	F5 90		KEY_Delay:  MOV P1, A
+   68:	  00A2	75 B0 F0	            MOV P3, #0F0H     ;列选全部输出0,此时若有开关按下,则行信号必然有0
+   69:	  00A5	D3		            SETB C
+   70:	  00A6	82 A0		            ANL C, P2.0
+   71:	  00A8	82 A1		            ANL C, P2.1
+   72:	  00AA	82 A2		            ANL C, P2.2
+   73:	  00AC	82 A3		            ANL C, P2.3
+   74:	  00AE	50 F0		            JNC KEY_Delay
+   75:	  00B0	75 90 F0	            MOV P1, #0F0H
+   76:	  00B3	02 00 03	            LJMP KEYSCAN
+   77:
+   78:				            END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+COL0				  CODE	    0011	  10
+COL1				  CODE	    0034	  24
+COL2				  CODE	    0057	  38
+COL3				  CODE	    007A	  52
+CY				  BIT	      D7
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ELE00				  CODE	    0014	  11
+ELE01				  CODE	    0037	  25
+ELE02				  CODE	    005A	  39
+ELE03				  CODE	    007D	  53
+ELE10				  CODE	    001C	  14
+ELE11				  CODE	    003F	  28
+ELE12				  CODE	    0062	  42
+ELE13				  CODE	    0085	  56
+ELE20				  CODE	    0024	  17
+ELE21				  CODE	    0047	  31
+ELE22				  CODE	    006A	  45
+ELE23				  CODE	    008D	  59
+ELE30				  CODE	    002C	  20
+ELE31				  CODE	    004F	  34
+ELE32				  CODE	    0072	  48
+ELE33				  CODE	    0095	  62
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+KEYSCAN				  CODE	    0003	   2
+KEY_DELAY			  CODE	    00A0	  67
+NOBTN				  CODE	    009D	  65
+OV				  BIT	      D2
+P				  BIT	      D0
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+START				  CODE	    0000	   1
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6

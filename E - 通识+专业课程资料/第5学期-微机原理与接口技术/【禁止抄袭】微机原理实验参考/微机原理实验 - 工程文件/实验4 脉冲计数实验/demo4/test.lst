@@ -1,0 +1,389 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	test.asm
+	Object File:	test.hex
+	List File:	test.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				; 定义变量存储单元 (4个字节对应8位十进制数)
+    2:				; 每个字节存储 0-99 的数值
+    3:		N      0030	CNT_LL  EQU 30H    ; 最低2位 (个位, 十位)
+    4:		N      0031	CNT_LH  EQU 31H    ; 次低2位 (百位, 千位)
+    5:		N      0032	CNT_HL  EQU 32H    ; 次高2位 (万位, 十万位)
+    6:		N      0033	CNT_HH  EQU 33H    ; 最高2位 (百万位, 千万位)
+    7:
+    8:				; 复位入口
+    9:		N      0000	ORG 0000H
+   10:	  0000	02 00 30	    LJMP MAIN       ; 上电跳转到主程序
+   11:
+   12:				; 中断向量表
+   13:		N      0003	ORG 0003H           ; 外部中断0入口 (启动/暂停)
+   14:	  0003	02 00 5F	    LJMP ISR_INT0
+   15:
+   16:		N      0013	ORG 0013H           ; 外部中断1入口 (清零)
+   17:	  0013	02 00 62	    LJMP ISR_INT1
+   18:
+   19:		N      001B	ORG 001BH           ; 定时器1中断入口 (脉冲计数)
+   20:	  001B	02 00 74	    LJMP ISR_T1
+   21:
+   22:				;-------------------------主程序-------------------------
+   23:		N      0030	ORG 0030H
+   24:	  0030			MAIN:
+   25:				    ; 1. 堆栈初始化
+   26:	  0030	75 81 60	    MOV SP, #60H
+   27:
+   28:				    ; 2. 变量初始化 (清零显示)
+   29:	  0033	75 30 00	    MOV CNT_LL, #0
+   30:	  0036	75 31 00	    MOV CNT_LH, #0
+   31:	  0039	75 32 00	    MOV CNT_HL, #0
+   32:	  003C	75 33 00	    MOV CNT_HH, #0
+   33:
+   34:				    ; 3. 定时器T1配置 (设计提示2)
+   35:				    ; TMOD: Gate=0, C/T=1(计数), M1=1, M0=0 (方式2: 8位自动重装)
+   36:				    ; 高4位控制T1, 低4位控制T0. 二进制: 0110 0000
+   37:	  003F	75 89 60	    MOV TMOD, #60H
+   38:
+   39:				    ; 设置初值为0xFF, 只要来1个脉冲就溢出中断
+   40:	  0042	75 8D FF	    MOV TH1, #0FFH
+   41:	  0045	75 8B FF	    MOV TL1, #0FFH
+   42:
+   43:				    ; 4. 中断配置
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0048	D2 AF		    SETB EA         ; 开总中断
+   45:	  004A	D2 AB		    SETB ET1        ; 开定时器1中断
+   46:	  004C	D2 A8		    SETB EX0        ; 开外部中断0
+   47:	  004E	D2 AA		    SETB EX1        ; 开外部中断1
+   48:
+   49:				    ; 设置触发方式为下降沿 (ITx = 1)
+   50:	  0050	D2 88		    SETB IT0
+   51:	  0052	D2 8A		    SETB IT1
+   52:
+   53:				    ; 设置外部中断优先级为高 (设计提示1)
+   54:	  0054	D2 B8		    SETB PX0
+   55:	  0056	D2 BA		    SETB PX1
+   56:
+   57:				    ; 5. 初始状态: 停止计数
+   58:	  0058	C2 8E		    CLR TR1         ; TR1=0 停止, TR1=1 开始
+   59:
+   60:				; 主循环: 负责数码管动态扫描显示
+   61:	  005A			LOOP:
+   62:	  005A	12 00 AE	    LCALL DISPLAY_ALL
+   63:	  005D	80 FB		    SJMP LOOP
+   64:
+   65:				; 中断服务程序
+   66:
+   67:				; 外部中断0 (启动/暂停)
+   68:	  005F			ISR_INT0:
+   69:	  005F	B2 8E		    CPL TR1         ; 取反TR1位: 运行->暂停, 暂停->运行
+   70:	  0061	32		    RETI
+   71:
+   72:				; 外部中断1 (清零)
+   73:	  0062			ISR_INT1:
+   74:	  0062	C2 8E		    CLR TR1         ; 停止计数
+   75:				    ; 清除所有计数值
+   76:	  0064	75 30 00	    MOV CNT_LL, #0
+   77:	  0067	75 31 00	    MOV CNT_LH, #0
+   78:	  006A	75 32 00	    MOV CNT_HL, #0
+   79:	  006D	75 33 00	    MOV CNT_HH, #0
+   80:				    ; 恢复T1初值 (保险起见)
+   81:	  0070	75 8B FF	    MOV TL1, #0FFH
+   82:	  0073	32		    RETI
+   83:
+   84:				;--------------------------------------------------------------------
+   85:				; 定时器1中断 (脉冲计数核心逻辑)
+   86:				; 逻辑参考流程图: 多字节十进制加1
+   87:				;--------------------------------------------------------------------
+   88:	  0074			ISR_T1:
+   89:	  0074	C0 D0		    PUSH PSW        ; 保护现场
+   90:	  0076	C0 E0		    PUSH ACC
+   91:
+   92:				    ; --- 最低2位加1 ---
+   93:	  0078	E5 30		    MOV A, CNT_LL
+   94:	  007A	24 01		    ADD A, #1       ; 加1
+   95:	  007C	D4		    DA A            ; BCD调整(虽然存储的是HEX值0-99, 但逻辑上我们需要判100)
+   96:				                    ; 注意: 这里直接用HEX判断更简单, 因为DA A是针对BCD运算的
+   97:				                    ; 按照题目流程图逻辑：
+   98:	  007D	E5 30		    MOV A, CNT_LL
+   99:	  007F	04		    INC A           ; 寄存器值加1
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  0080	F5 30		    MOV CNT_LL, A   ; 存回
+  101:
+  102:	  0082	B4 64 24	    CJNE A, #100, T1_EXIT ; 如果不等于100 (即0-99), 退出
+  103:
+  104:				    ; --- 进位处理 1 ---
+  105:	  0085	75 30 00	    MOV CNT_LL, #0  ; 清零最低2位
+  106:
+  107:	  0088	E5 31		    MOV A, CNT_LH   ; 取次低2位
+  108:	  008A	04		    INC A
+  109:	  008B	F5 31		    MOV CNT_LH, A
+  110:	  008D	B4 64 19	    CJNE A, #100, T1_EXIT ; 判断是否满100
+  111:
+  112:				    ; --- 进位处理 2 ---
+  113:	  0090	75 31 00	    MOV CNT_LH, #0  ; 清零
+  114:
+  115:	  0093	E5 32		    MOV A, CNT_HL   ; 取次高2位
+  116:	  0095	04		    INC A
+  117:	  0096	F5 32		    MOV CNT_HL, A
+  118:	  0098	B4 64 0E	    CJNE A, #100, T1_EXIT
+  119:
+  120:				    ; --- 进位处理 3 ---
+  121:	  009B	75 32 00	    MOV CNT_HL, #0  ; 清零
+  122:
+  123:	  009E	E5 33		    MOV A, CNT_HH   ; 取最高2位
+  124:	  00A0	04		    INC A
+  125:	  00A1	F5 33		    MOV CNT_HH, A
+  126:	  00A3	B4 64 03	    CJNE A, #100, T1_EXIT
+  127:
+  128:				    ; --- 溢出归零 (虽然很少发生) ---
+  129:	  00A6	75 33 00	    MOV CNT_HH, #0
+  130:
+  131:	  00A9			T1_EXIT:
+  132:	  00A9	D0 E0		    POP ACC         ; 恢复现场
+  133:	  00AB	D0 D0		    POP PSW
+  134:	  00AD	32		    RETI
+  135:
+  136:	  00AE			DISPLAY_ALL:
+  137:				    ; 显示第8位 (最高位千万位) - 对应 CNT_HH 的十位
+  138:	  00AE	E5 33		    MOV A, CNT_HH
+  139:	  00B0	75 F0 0A	    MOV B, #10
+  140:	  00B3	84		    DIV AB          ; A = 十位, B = 个位
+  141:	  00B4	90 01 3A	    MOV DPTR, #TAB
+  142:	  00B7	93		    MOVC A, @A+DPTR ; 查表得段码
+  143:	  00B8	75 80 00	    MOV P0, #00H    ; 消隐
+  144:	  00BB	75 A0 FE	    MOV P2, #0FEH   ; 选中第1位 (1111 1110)
+  145:	  00BE	F5 80		    MOV P0, A       ; 输出段码
+  146:	  00C0	12 01 35	    LCALL DELAY     ; 延时
+  147:
+  148:				    ; 显示第7位 (百万位) - 对应 CNT_HH 的个位
+  149:	  00C3	E5 F0		    MOV A, B        ; 取刚才DIV剩下的余数(个位)
+  150:	  00C5	93		    MOVC A, @A+DPTR
+  151:	  00C6	75 80 00	    MOV P0, #00H
+  152:	  00C9	75 A0 FD	    MOV P2, #0FDH   ; 选中第2位 (1111 1101)
+  153:	  00CC	F5 80		    MOV P0, A
+  154:	  00CE	12 01 35	    LCALL DELAY
+  155:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  156:				    ; 显示第6位 (十万位) - 对应 CNT_HL 的十位
+  157:	  00D1	E5 32		    MOV A, CNT_HL
+  158:	  00D3	75 F0 0A	    MOV B, #10
+  159:	  00D6	84		    DIV AB
+  160:	  00D7	93		    MOVC A, @A+DPTR
+  161:	  00D8	75 80 00	    MOV P0, #00H
+  162:	  00DB	75 A0 FB	    MOV P2, #0FBH   ; 选中第3位
+  163:	  00DE	F5 80		    MOV P0, A
+  164:	  00E0	12 01 35	    LCALL DELAY
+  165:
+  166:				    ; 显示第5位 (万位) - 对应 CNT_HL 的个位
+  167:	  00E3	E5 F0		    MOV A, B
+  168:	  00E5	93		    MOVC A, @A+DPTR
+  169:	  00E6	75 80 00	    MOV P0, #00H
+  170:	  00E9	75 A0 F7	    MOV P2, #0F7H   ; 选中第4位
+  171:	  00EC	F5 80		    MOV P0, A
+  172:	  00EE	12 01 35	    LCALL DELAY
+  173:
+  174:				    ; 显示第4位 (千位) - 对应 CNT_LH 的十位
+  175:	  00F1	E5 31		    MOV A, CNT_LH
+  176:	  00F3	75 F0 0A	    MOV B, #10
+  177:	  00F6	84		    DIV AB
+  178:	  00F7	93		    MOVC A, @A+DPTR
+  179:	  00F8	75 80 00	    MOV P0, #00H
+  180:	  00FB	75 A0 EF	    MOV P2, #0EFH   ; 选中第5位
+  181:	  00FE	F5 80		    MOV P0, A
+  182:	  0100	12 01 35	    LCALL DELAY
+  183:
+  184:				    ; 显示第3位 (百位) - 对应 CNT_LH 的个位
+  185:	  0103	E5 F0		    MOV A, B
+  186:	  0105	93		    MOVC A, @A+DPTR
+  187:	  0106	75 80 00	    MOV P0, #00H
+  188:	  0109	75 A0 DF	    MOV P2, #0DFH   ; 选中第6位
+  189:	  010C	F5 80		    MOV P0, A
+  190:	  010E	12 01 35	    LCALL DELAY
+  191:
+  192:				    ; 显示第2位 (十位) - 对应 CNT_LL 的十位
+  193:	  0111	E5 30		    MOV A, CNT_LL
+  194:	  0113	75 F0 0A	    MOV B, #10
+  195:	  0116	84		    DIV AB
+  196:	  0117	93		    MOVC A, @A+DPTR
+  197:	  0118	75 80 00	    MOV P0, #00H
+  198:	  011B	75 A0 BF	    MOV P2, #0BFH   ; 选中第7位
+  199:	  011E	F5 80		    MOV P0, A
+  200:	  0120	12 01 35	    LCALL DELAY
+  201:
+  202:				    ; 显示第1位 (个位) - 对应 CNT_LL 的个位
+  203:	  0123	E5 F0		    MOV A, B
+  204:	  0125	93		    MOVC A, @A+DPTR
+  205:	  0126	75 80 00	    MOV P0, #00H
+  206:	  0129	75 A0 7F	    MOV P2, #7FH    ; 选中第8位
+  207:	  012C	F5 80		    MOV P0, A
+  208:	  012E	12 01 35	    LCALL DELAY
+  209:
+  210:	  0131	75 80 00	    MOV P0, #00H    ; 关闭显示
+  211:	  0134	22		    RET
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+ Line  I  Addr  Code            Source
+
+  212:
+  213:				; 短延时子程序 (控制显示亮度与扫描频率)
+  214:	  0135			DELAY:
+  215:	  0135	7F 64		    MOV R7, #100    ; 延时计数，可根据仿真速度调整
+  216:	  0137	DF FE		D1: DJNZ R7, D1
+  217:	  0139	22		    RET
+  218:
+  219:				; 共阴极数码管段码表 (0-9)，对应: P0.0-P0.6 (A-G), P0.7 (DP)
+  220:	  013A			TAB:
+  221:	  013A	3F 06 5B 4F	    DB 3FH, 06H, 5BH, 4FH, 66H, 6DH, 7DH, 07H, 7FH, 6FH; 对应0~9
+	  013E	66 6D 7D 07
+	  0142	7F 6F
+  222:
+  223:				    END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CNT_HH				  NUMBER    0033	   6
+CNT_HL				  NUMBER    0032	   5
+CNT_LH				  NUMBER    0031	   4
+CNT_LL				  NUMBER    0030	   3
+CY				  BIT	      D7
+D1				  CODE	    0137	 216
+DELAY				  CODE	    0135	 214
+DISPLAY_ALL			  CODE	    00AE	 136
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+ISR_INT0			  CODE	    005F	  68
+ISR_INT1			  CODE	    0062	  73
+ISR_T1				  CODE	    0074	  88
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LOOP				  CODE	    005A	  61
+MAIN				  CODE	    0030	  24
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+T1_EXIT				  CODE	    00A9	 131
+TAB				  CODE	    013A	 220
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6

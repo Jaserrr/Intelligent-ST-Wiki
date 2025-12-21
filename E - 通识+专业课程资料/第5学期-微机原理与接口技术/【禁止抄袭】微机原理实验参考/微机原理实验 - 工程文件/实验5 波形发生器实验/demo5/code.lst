@@ -1,0 +1,417 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	code.asm
+	Object File:	code.hex
+	List File:	code.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				;--- 寄存器定义 ---
+    2:		D      0080	DAC_PORT    EQU P0      ; DAC0832 数据口
+    3:		D      0090	SW_INPUT    EQU P1      ; P1.0-P1.3 为波形选择开关
+    4:		D      0090	LED_PORT    EQU P1      ; P1.4-P1.7 为波形指示灯
+    5:		D      00A0	FREQ_PORT   EQU P2      ; 频率控制输入口
+    6:
+    7:				;--- 程序入口 ---
+    8:		N      0000	ORG 0000H
+    9:	  0000	02 00 30	    LJMP START
+   10:
+   11:		N      0030	ORG 0030H
+   12:	  0030			START:
+   13:				    ; 初始化
+   14:	  0030	75 80 80	    MOV DAC_PORT, #80H  ; DAC输出中间值
+   15:	  0033	75 90 FF	    MOV P1, #0FFH       ; P1口置高：低4位做输入准备，高4位LED全灭(设LED低电平亮
+				)
+   16:
+   17:	  0036			MAIN_LOOP:
+   18:				    ; --- 流程图逻辑开始 ---
+   19:
+   20:				    ; 1. 检测方波开关 (P1.0)
+   21:	  0036	20 90 0D	    JB P1.0, CHK_SAW    ; 如果P1.0是高电平(未按下)，跳转检查锯齿波
+   22:
+   23:				    ; P1.0按下 (方波选择)
+   24:	  0039	C2 94		    CLR P1.4            ; 点亮方波指示灯 (P1.4)
+   25:	  003B	D2 95		    SETB P1.5           ; 熄灭其他灯
+   26:	  003D	D2 96		    SETB P1.6
+   27:	  003F	D2 97		    SETB P1.7
+   28:	  0041	12 00 85	    LCALL WAVE_SQUARE   ; 调用方波子程序
+   29:	  0044	80 F0		    SJMP MAIN_LOOP      ; 执行完一周期后重新检测（实现循环）
+   30:
+   31:	  0046			CHK_SAW:
+   32:	  0046	D2 94		    SETB P1.4           ; 熄灭方波灯
+   33:
+   34:				    ; 2. 检测锯齿波开关 (P1.1)
+   35:	  0048	20 91 0B	    JB P1.1, CHK_TRI    ; 未按下，查三角波
+   36:
+   37:				    ; P1.1按下 (锯齿波选择)
+   38:	  004B	C2 95		    CLR P1.5            ; 点亮锯齿波指示灯
+   39:	  004D	D2 96		    SETB P1.6
+   40:	  004F	D2 97		    SETB P1.7
+   41:	  0051	12 00 9A	    LCALL WAVE_SAW      ; 调用锯齿波子程序
+   42:	  0054	80 E0		    SJMP MAIN_LOOP
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   43:
+   44:	  0056			CHK_TRI:
+   45:	  0056	D2 95		    SETB P1.5           ; 熄灭锯齿波灯
+   46:
+   47:				    ; 3. 检测三角波开关 (P1.2)
+   48:	  0058	20 92 09	    JB P1.2, CHK_SINE   ; 未按下，查正弦波
+   49:
+   50:				    ; P1.2按下 (三角波选择)
+   51:	  005B	C2 96		    CLR P1.6            ; 点亮三角波指示灯
+   52:	  005D	D2 97		    SETB P1.7
+   53:	  005F	12 00 A6	    LCALL WAVE_TRI      ; 调用三角波子程序
+   54:	  0062	80 D2		    SJMP MAIN_LOOP
+   55:
+   56:	  0064			CHK_SINE:
+   57:	  0064	D2 96		    SETB P1.6           ; 熄灭三角波灯
+   58:
+   59:				    ; 4. 检测正弦波开关 (P1.3)
+   60:	  0066	20 93 07	    JB P1.3, ALL_OFF    ; 未按下，去全灭逻辑
+   61:
+   62:				    ; P1.3按下 (正弦波选择)
+   63:	  0069	C2 97		    CLR P1.7            ; 点亮正弦波指示灯
+   64:	  006B	12 00 C8	    LCALL WAVE_SINE     ; 调用正弦波子程序
+   65:	  006E	80 C6		    SJMP MAIN_LOOP
+   66:
+   67:	  0070			ALL_OFF:
+   68:	  0070	D2 97		    SETB P1.7           ; 熄灭正弦波灯
+   69:				    ; 如果没有按键按下，保持输出不变或输出0，这里选择循环检测
+   70:	  0072	80 C2		    SJMP MAIN_LOOP
+   71:
+   72:				;====================================================================
+   73:				; 通用延时子程序 (频率控制)
+   74:				; P2值越大 -> 频率越高 -> 延时越短    算法: 延时次数 = (255 - P2值)
+   75:				;====================================================================
+   76:	  0074			DELAY_FREQ:
+   77:	  0074	C0 E0		    PUSH ACC            ; 保护累加器
+   78:	  0076	C0 07		    PUSH 07H            ; 保护R7
+   79:
+   80:	  0078	E5 A0		    MOV A, FREQ_PORT    ; 读取P2口频率设定值
+   81:	  007A	F4		    CPL A               ; 取反 (例如: P2=255(FF) -> A=0; P2=0 -> A=255)
+   82:	  007B	60 03		    JZ DELAY_MIN        ; 如果结果为0，说明P2是255(最高频)，直接返回
+   83:
+   84:	  007D	FF		    MOV R7, A           ; 将反码存入R7作为循环次数
+   85:	  007E			DLY_LOOP:
+   86:	  007E	DF FE		    DJNZ R7, DLY_LOOP   ; 简单的软件延时循环
+   87:
+   88:	  0080			DELAY_MIN:
+   89:	  0080	D0 07		    POP 07H
+   90:	  0082	D0 E0		    POP ACC
+   91:	  0084	22		    RET
+   92:
+   93:				;====================================================================
+   94:				; 1. 方波生成子程序（输出00H -> 延时 -> 输出FFH -> 延时）
+   95:				; 与其他波形频率近似（每周期约256步），循环调用延时128次高电平/128次低�
+				��平
+   96:				;====================================================================
+   97:	  0085			WAVE_SQUARE:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+   98:	  0085	7E 80		    MOV R6, #128        ; 半周期计数
+   99:	  0087			SQ_HIGH:
+  100:	  0087	75 80 FF	    MOV DAC_PORT, #0FFH ; 输出最大值
+  101:	  008A	12 00 74	    LCALL DELAY_FREQ
+  102:	  008D	DE F8		    DJNZ R6, SQ_HIGH
+  103:
+  104:	  008F	7E 80		    MOV R6, #128        ; 半周期计数
+  105:	  0091			SQ_LOW:
+  106:	  0091	75 80 00	    MOV DAC_PORT, #00H  ; 输出最小值
+  107:	  0094	12 00 74	    LCALL DELAY_FREQ
+  108:	  0097	DE F8		    DJNZ R6, SQ_LOW
+  109:	  0099	22		    RET
+  110:
+  111:				;====================================================================
+  112:				; 2. 锯齿波生成子程序（0 -> 255, 步长2）
+  113:				;====================================================================
+  114:	  009A			WAVE_SAW:
+  115:	  009A	74 00		    MOV A, #00H         ;以此为起点
+  116:	  009C			SAW_LOOP:
+  117:	  009C	F5 80		    MOV DAC_PORT, A     ; 输出当前值
+  118:	  009E	12 00 74	    LCALL DELAY_FREQ    ; 延时
+  119:	  00A1	24 02		    ADD A, #02H         ; 步长 +2
+  120:	  00A3	70 F7		    JNZ SAW_LOOP        ; 如果没溢出回0，继续循环
+  121:	  00A5	22		    RET
+  122:
+  123:				;====================================================================
+  124:				; 3. 三角波生成子程序（0 -> 254 (上升), 254 -> 0 (下降), 步长2）
+  125:				;====================================================================
+  126:	  00A6			WAVE_TRI:
+  127:	  00A6	74 00		    MOV A, #00H         ; 起点
+  128:
+  129:				    ; 上升段 (0 -> 254)
+  130:	  00A8			TRI_UP:
+  131:	  00A8	F5 80		    MOV DAC_PORT, A
+  132:	  00AA	12 00 74	    LCALL DELAY_FREQ
+  133:	  00AD	24 02		    ADD A, #02H
+  134:	  00AF	B4 FE 02	    CJNE A, #0FEH, TRI_CHK_UP ; 判断是否达到254 (0FEH)
+  135:	  00B2	80 02		    SJMP TRI_DOWN_START       ; 达到顶点，开始下降
+  136:	  00B4			TRI_CHK_UP:
+  137:	  00B4	40 F2		    JC TRI_UP                 ; 如果A < FE，继续上升
+  138:
+  139:				    ; 下降段 (254 -> 0)
+  140:	  00B6			TRI_DOWN_START:
+  141:	  00B6	74 FE		    MOV A, #0FEH
+  142:	  00B8			TRI_DOWN:
+  143:	  00B8	F5 80		    MOV DAC_PORT, A
+  144:	  00BA	12 00 74	    LCALL DELAY_FREQ
+  145:	  00BD	C3		    CLR C
+  146:	  00BE	94 02		    SUBB A, #02H
+  147:	  00C0	70 F6		    JNZ TRI_DOWN        ; 直到减到0
+  148:	  00C2	F5 80		    MOV DAC_PORT, A     ; 输出最后的0
+  149:	  00C4	12 00 74	    LCALL DELAY_FREQ
+  150:	  00C7	22		    RET
+  151:
+  152:				;====================================================================
+  153:				; 4. 正弦波生成子程序 (查表法)
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  154:				; 逻辑: 查表输出0-255个点
+  155:				;====================================================================
+  156:	  00C8			WAVE_SINE:
+  157:	  00C8	90 00 D9	    MOV DPTR, #SINE_TABLE ; 指向表头
+  158:	  00CB	7E 00		    MOV R6, #0            ; 计数器 0-255
+  159:	  00CD			SINE_LOOP:
+  160:	  00CD	EE		    MOV A, R6
+  161:	  00CE	93		    MOVC A, @A+DPTR       ; 查表
+  162:	  00CF	F5 80		    MOV DAC_PORT, A       ; 输出
+  163:	  00D1	12 00 74	    LCALL DELAY_FREQ
+  164:	  00D4	0E		    INC R6
+  165:	  00D5	EE		    MOV A, R6
+  166:	  00D6	70 F5		    JNZ SINE_LOOP         ; 循环256次
+  167:	  00D8	22		    RET
+  168:
+  169:				;====================================================================
+  170:				; 正弦波数据表 (0-360度，256个采样点，幅值0-255)
+  171:				; y = 128 + 127 * sin(x)
+  172:				;====================================================================
+  173:	  00D9			SINE_TABLE:
+  174:	  00D9	80 83 86 89	    DB 128, 131, 134, 137, 140, 143, 146, 149, 152, 155, 158, 162, 165, 168, 171, 174
+	  00DD	8C 8F 92 95
+	  00E1	98 9B 9E A2
+	  00E5	A5 A8 AB AE
+  175:	  00E9	B0 B3 B6 B9	    DB 176, 179, 182, 185, 188, 191, 193, 196, 199, 201, 204, 206, 209, 211, 213, 216
+	  00ED	BC BF C1 C4
+	  00F1	C7 C9 CC CE
+	  00F5	D1 D3 D5 D8
+  176:	  00F9	DA DC DE E0	    DB 218, 220, 222, 224, 226, 228, 230, 232, 234, 236, 237, 239, 240, 242, 243, 245
+	  00FD	E2 E4 E6 E8
+	  0101	EA EC ED EF
+	  0105	F0 F2 F3 F5
+  177:	  0109	F6 F7 F8 F9	    DB 246, 247, 248, 249, 250, 251, 252, 252, 253, 254, 254, 255, 255, 255, 255, 255
+	  010D	FA FB FC FC
+	  0111	FD FE FE FF
+	  0115	FF FF FF FF
+  178:	  0119	FF FF FF FF	    DB 255, 255, 255, 255, 255, 255, 254, 254, 253, 252, 252, 251, 250, 249, 248, 247
+	  011D	FF FF FE FE
+	  0121	FD FC FC FB
+	  0125	FA F9 F8 F7
+  179:	  0129	F6 F5 F3 F2	    DB 246, 245, 243, 242, 240, 239, 237, 236, 234, 232, 230, 228, 226, 224, 222, 220
+	  012D	F0 EF ED EC
+	  0131	EA E8 E6 E4
+	  0135	E2 E0 DE DC
+  180:	  0139	DA D8 D5 D3	    DB 218, 216, 213, 211, 209, 206, 204, 201, 199, 196, 193, 191, 188, 185, 182, 179
+	  013D	D1 CE CC C9
+	  0141	C7 C4 C1 BF
+	  0145	BC B9 B6 B3
+  181:	  0149	B0 AE AB A8	    DB 176, 174, 171, 168, 165, 162, 158, 155, 152, 149, 146, 143, 140, 137, 134, 131
+	  014D	A5 A2 9E 9B
+	  0151	98 95 92 8F
+	  0155	8C 89 86 83
+  182:	  0159	80 7D 7A 77	    DB 128, 125, 122, 119, 116, 113, 110, 107, 104, 101,  98,  94,  91,  88,  85,  82
+	  015D	74 71 6E 6B
+	  0161	68 65 62 5E
+	  0165	5B 58 55 52
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+ Line  I  Addr  Code            Source
+
+  183:	  0169	50 4D 4A 47	    DB  80,  77,  74,  71,  68,  65,  63,  60,  57,  55,  52,  50,  47,  45,  43,  40
+	  016D	44 41 3F 3C
+	  0171	39 37 34 32
+	  0175	2F 2D 2B 28
+  184:	  0179	26 24 22 20	    DB  38,  36,  34,  32,  30,  28,  26,  24,  22,  20,  19,  17,  16,  14,  13,  11
+	  017D	1E 1C 1A 18
+	  0181	16 14 13 11
+	  0185	10 0E 0D 0B
+  185:	  0189	0A 09 08 07	    DB  10,   9,   8,   7,   6,   5,   4,   4,   3,   2,   2,   1,   1,   1,   1,   1
+	  018D	06 05 04 04
+	  0191	03 02 02 01
+	  0195	01 01 01 01
+  186:	  0199	01 01 01 01	    DB   1,   1,   1,   1,   1,   1,   2,   2,   3,   4,   4,   5,   6,   7,   8,   9
+	  019D	01 01 02 02
+	  01A1	03 04 04 05
+	  01A5	06 07 08 09
+  187:	  01A9	0A 0B 0D 0E	    DB  10,  11,  13,  14,  16,  17,  19,  20,  22,  24,  26,  28,  30,  32,  34,  36
+	  01AD	10 11 13 14
+	  01B1	16 18 1A 1C
+	  01B5	1E 20 22 24
+  188:	  01B9	26 28 2B 2D	    DB  38,  40,  43,  45,  47,  50,  52,  55,  57,  60,  63,  65,  68,  71,  74,  77
+	  01BD	2F 32 34 37
+	  01C1	39 3C 3F 41
+	  01C5	44 47 4A 4D
+  189:	  01C9	50 52 55 58	    DB  80,  82,  85,  88,  91,  94,  98, 101, 104, 107, 110, 113, 116, 119, 122, 125
+	  01CD	5B 5E 62 65
+	  01D1	68 6B 6E 71
+	  01D5	74 77 7A 7D
+  190:
+  191:				    END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+ALL_OFF				  CODE	    0070	  67
+B				  DATA	      F0
+CHK_SAW				  CODE	    0046	  31
+CHK_SINE			  CODE	    0064	  56
+CHK_TRI				  CODE	    0056	  44
+CY				  BIT	      D7
+DAC_PORT			  NUMBER    0080	   2
+DELAY_FREQ			  CODE	    0074	  76
+DELAY_MIN			  CODE	    0080	  88
+DLY_LOOP			  CODE	    007E	  85
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+FREQ_PORT			  NUMBER    00A0	   5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LED_PORT			  NUMBER    0090	   4
+MAIN_LOOP			  CODE	    0036	  17
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SAW_LOOP			  CODE	    009C	 116
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINE_LOOP			  CODE	    00CD	 159
+SINE_TABLE			  CODE	    00D9	 173
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+SQ_HIGH				  CODE	    0087	  99
+SQ_LOW				  CODE	    0091	 105
+START				  CODE	    0030	  12
+SW_INPUT			  NUMBER    0090	   3
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TRI_CHK_UP			  CODE	    00B4	 136
+TRI_DOWN			  CODE	    00B8	 142
+TRI_DOWN_START			  CODE	    00B6	 140
+TRI_UP				  CODE	    00A8	 130
+TXD				  BIT	      B1
+WAVE_SAW			  CODE	    009A	 114
+WAVE_SINE			  CODE	    00C8	 156
+WAVE_SQUARE			  CODE	    0085	  97
+WAVE_TRI			  CODE	    00A6	 126
+WR				  BIT	      B6

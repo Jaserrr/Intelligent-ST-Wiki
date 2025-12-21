@@ -1,0 +1,38 @@
+,,,;设8个数码管的从左到右显示缓冲区为片内RAM的50H～57H单元
+,,,        ORG  0000H
+0000,02 01 00,,        LJMP MAIN
+,,,        ORG  0100H
+0100,74 00,MAIN,MAIN:  MOV A,#0                ;显示缓冲区50H～57H单元初始化为0～7
+0102,7A 08,,        MOV  R2,#8
+0104,78 50,,        MOV  R0,#50H
+0106,F6,LOOP,LOOP:  MOV  @R0,A
+0107,08,,        INC R0
+0108,04,,        INC A
+0109,DA FB,,        DJNZ  R2,LOOP
+010B,12 01 12,LOOP1,LOOP1: LCALL DISPLAY           ;调用显示子程序
+010E,80 FB,,        SJMP  LOOP1
+0110,80 FE,,        SJMP  $
+,,,;显示子程序
+0112,78 57,DISPLAY,DISPLAY:MOV  R0,#57H           ;动态显示初始化,使R0指向缓冲区首地址
+0114,7B 7F,,        MOV  R3,#7FH           ;首位位选字送R3
+0116,EB,,        MOV  A,R3
+0117,F5 A0,LD0,LD0:    MOV  P2,A              ;从P2口送出位选字
+0119,E6,,        MOV  A,@R0             ;读要显示数
+011A,24 0E,,        ADD  A,#0EH            ;调整距离字段码表首的偏移量
+011C,83,,        MOVC A,@A+PC           ;查表取得字段码
+011D,F5 80,,        MOV  P0,A              ;字段码从P0口输出
+011F,31 33,,        ACALL  DL1             ;调用1ms延时子程序
+0121,18,,        DEC  R0                ;指向缓冲区下一单元
+0122,EB,,        MOV  A,R3              ;位选码送累加器A
+0123,30 E0 04,,        JNB  ACC.0,LD1         ;判断8位是否显示完毕,显示完返回
+0126,03,,        RR  A                  ;未显示完,把位选字变为下一位选字
+0127,FB,,        MOV  R3,A              ;修改后的位选字送R3
+0128,21 17,,        AJMP  LD0              ;循环实现按位序依次显示
+012A,22,LD1,LD1:    RET
+012B,76 79 38 38,TAB,TAB:    DB  76H,79H,38H,38H,3FH,40H,7FH,7FH;字段码表
+0133,7F 02,DL1,DL1:    MOV  R7,#02H           ;延时子程序
+0135,7E FF,DL,DL:     MOV  R6,#0FFH
+0137,DE FE,DL0,DL0:    DJNZ  R6,DL0
+0139,DF FA,,        DJNZ  R7,DL
+013B,22,,        RET
+000E,,,        END
